@@ -1,4 +1,4 @@
--- [[ THÀNH LỢI HUB - AOT REVOLUTION v16.4 - FIX FULL TAB & MERGE KILL AURA ]]
+-- [[ THÀNH LỢI HUB - AOT REVOLUTION v16.8 - MOBILE OPTIMIZED ]]
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -34,6 +34,7 @@ env.MaxKillPerMinute = 80
 env.MaxKillAuraPerMinute = 160
 env.RandomizeDelay = true
 env.DamageType = "Nape"
+env.MobileMode = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 
 local DAMAGE_KEY = "&@&*&@&"
 
@@ -117,7 +118,7 @@ local function GetSmartDelay()
     return base
 end
 
--- ============ HACKS (ONE HIT, GAS, BLADES) ============
+-- ============ HACKS ============
 local function ApplyHacks()
     local odm = GetMyOdm()
     if odm then
@@ -397,7 +398,7 @@ local function AutoKillHumanLoop()
     end)
 end
 
--- ============ KILL AURA (TITAN + SNIPER) ============
+-- ============ KILL AURA ============
 local killAuraRunning = false
 local function KillAuraLoop()
     if killAuraRunning then return end
@@ -412,7 +413,6 @@ local function KillAuraLoop()
             local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
             if not myRoot then continue end
             
-            -- Đánh Titan
             local tf = GetTitansFolder()
             if tf then
                 for _, t in ipairs(tf:GetChildren()) do
@@ -433,7 +433,6 @@ local function KillAuraLoop()
                 end
             end
             
-            -- Đánh Sniper/Human
             if env.KillAuraHitHuman then
                 for _, m in ipairs(workspace:GetDescendants()) do
                     if m:IsA("Model") and m ~= LocalPlayer.Character then
@@ -471,62 +470,159 @@ RunService.RenderStepped:Connect(function()
 end)
 
 -- =====================================================
--- ============ FLUENT GUI (FULL ICONS & FIX) ==========
+-- ============ FLUENT UI - MOBILE OPTIMIZED ==========
 -- =====================================================
--- Load Fluent với fallback (tránh lỗi mất tab)
-local Fluent
-local ok, err = pcall(function()
-    Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-end)
-if not ok or not Fluent then
-    pcall(function()
-        Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/main.lua"))()
-    end)
-end
-if not Fluent then
-    Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/main/main.lua"))()
+local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+-- Mobile: cửa sổ nhỏ hơn, chữ to hơn, nút dễ bấm
+local windowSize
+if env.MobileMode then
+    windowSize = UDim2.fromOffset(340, 300)
+else
+    windowSize = UDim2.fromOffset(520, 420)
 end
 
-local Window = Fluent:CreateWindow({ 
-    Title = "Thành Lợi | AOT Revolution", 
-    SubTitle = "v16.4 Ultimate", 
-    TabWidth = 160, 
-    Size = UDim2.fromOffset(520, 400), 
-    Theme = "Dark", 
-    MinimizeKey = Enum.KeyCode.End 
+local Window = Fluent:CreateWindow({
+    Title = "Thành Lợi Hub",
+    SubTitle = "v16.8 Mobile",
+    TabWidth = env.MobileMode and 110 or 160,
+    Size = windowSize,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.End
 })
 
--- Chỉ còn 3 Tab: Farm Chính (gộp Combat), Hacks & Mods, Cài Đặt Anti-Kick
 local Tabs = {
-    Main = Window:AddTab({ Title = "Farm Chính", Icon = "sword" }),
-    Hacks = Window:AddTab({ Title = "Hacks & Mods", Icon = "flame" }),
-    Settings = Window:AddTab({ Title = "Cài Đặt Anti-Kick", Icon = "settings" })
+    Main = Window:AddTab({ Title = "Farm", Icon = "sword" }),
+    Hacks = Window:AddTab({ Title = "Hacks", Icon = "flame" }),
+    Settings = Window:AddTab({ Title = "Cài Đặt", Icon = "settings" })
 }
 
--- ===== TAB 1: FARM CHÍNH (GỘP CẢ KILL AURA + COMBAT) =====
+-- ===== TAB 1: FARM =====
 Tabs.Main:AddSection("Auto Farm")
 Tabs.Main:AddToggle("AutoKill", { Title = "Auto Kill Titan", Default = false }):OnChanged(function(v) env.AutoKill = v end)
 Tabs.Main:AddToggle("AutoKillHuman", { Title = "Auto Kill Human/Sniper", Default = false }):OnChanged(function(v) env.AutoKillHuman = v end)
-Tabs.Main:AddToggle("LongRange", { Title = "Long Range Teleport Slash", Default = true }):OnChanged(function(v) env.LongRange = v end)
+Tabs.Main:AddToggle("LongRange", { Title = "Long Range Slash", Default = true }):OnChanged(function(v) env.LongRange = v end)
 Tabs.Main:AddToggle("AutoAim", { Title = "Auto Aim Nape/Head", Default = true }):OnChanged(function(v) env.AutoAim = v end)
 
-Tabs.Main:AddSection("Kill Aura & Combat")
-Tabs.Main:AddToggle("KillAura", { Title = "Bật Kill Aura (Titan + Sniper)", Default = false }):OnChanged(function(v) env.KillAura = v end)
-Tabs.Main:AddToggle("KillAuraHitHuman", { Title = "Kill Aura Đánh Cả Sniper/Human", Default = true }):OnChanged(function(v) env.KillAuraHitHuman = v end)
-Tabs.Main:AddSlider("AuraRadius", { Title = "Bán Kính Kill Aura", Default = 300, Min = 50, Max = 1000, Increment = 10 }):OnChanged(function(v) env.AuraRadius = v end)
-Tabs.Main:AddToggle("AntiGrab", { Title = "Anti-Grab (Tự thoát khi bị tóm)", Default = true }):OnChanged(function(v) env.AntiGrab = v end)
+Tabs.Main:AddSection("Kill Aura")
+Tabs.Main:AddToggle("KillAura", { Title = "Bật Kill Aura", Default = false }):OnChanged(function(v) env.KillAura = v end)
+Tabs.Main:AddToggle("KillAuraHitHuman", { Title = "Đánh Cả Sniper/Human", Default = true }):OnChanged(function(v) env.KillAuraHitHuman = v end)
+Tabs.Main:AddSlider("AuraRadius", { Title = "Bán Kính Aura", Default = 300, Min = 50, Max = 1000, Increment = 10 }):OnChanged(function(v) env.AuraRadius = v end)
+Tabs.Main:AddToggle("AntiGrab", { Title = "Anti-Grab", Default = true }):OnChanged(function(v) env.AntiGrab = v end)
 
--- ===== TAB 2: HACKS & MODS =====
+-- ===== TAB 2: HACKS =====
+Tabs.Hacks:AddSection("Damage")
 Tabs.Hacks:AddToggle("OneHit", { Title = "One Hit K.O", Default = true }):OnChanged(function(v) env.OneHit = v end)
 Tabs.Hacks:AddToggle("InfGas", { Title = "Gas Vô Hạn", Default = true }):OnChanged(function(v) env.InfGas = v end)
-Tabs.Hacks:AddToggle("InfBlades", { Title = "Blade Không Bao Giờ Hỏng", Default = true }):OnChanged(function(v) env.InfBlades = v end)
-Tabs.Hacks:AddDropdown("AutoKillSpeedMode", { Title = "Tốc Độ Farm", Values = {"Siêu Chậm", "Chậm", "Nhanh", "Siêu Nhanh"}, Default = "Nhanh" }):OnChanged(function(v) env.AutoKillSpeedMode = v end)
-Tabs.Hacks:AddDropdown("TweenSpeedMode", { Title = "Tốc Độ Bay (Tween)", Values = {"Rất Chậm", "Chậm", "Bình Thường", "Nhanh", "Rất Nhanh", "Cực Nhanh"}, Default = "Nhanh" }):OnChanged(function(v) env.TweenSpeedMode = v end)
+Tabs.Hacks:AddToggle("InfBlades", { Title = "Blade Vô Hạn", Default = true }):OnChanged(function(v) env.InfBlades = v end)
 
--- ===== TAB 3: CÀI ĐẶT ANTI-KICK =====
-Tabs.Settings:AddToggle("AntiKick", { Title = "Bật Chống Kick / Safe Mode", Default = true }):OnChanged(function(v) env.AntiKick = v end)
-Tabs.Settings:AddSlider("MaxKillPerMinute", { Title = "Giới hạn Auto Kill / Phút", Default = 80, Min = 20, Max = 150, Increment = 5 }):OnChanged(function(v) env.MaxKillPerMinute = v end)
-Tabs.Settings:AddSlider("MaxKillAuraPerMinute", { Title = "Giới hạn Kill Aura / Phút", Default = 160, Min = 40, Max = 300, Increment = 10 }):OnChanged(function(v) env.MaxKillAuraPerMinute = v end)
+Tabs.Hacks:AddSection("Tốc Độ")
+Tabs.Hacks:AddDropdown("AutoKillSpeedMode", { Title = "Tốc Độ Farm", Values = {"Siêu Chậm", "Chậm", "Nhanh", "Siêu Nhanh"}, Default = "Nhanh" }):OnChanged(function(v) env.AutoKillSpeedMode = v end)
+Tabs.Hacks:AddDropdown("TweenSpeedMode", { Title = "Tốc Độ Bay", Values = {"Rất Chậm", "Chậm", "Bình Thường", "Nhanh", "Rất Nhanh", "Cực Nhanh"}, Default = "Nhanh" }):OnChanged(function(v) env.TweenSpeedMode = v end)
+
+-- ===== TAB 3: CÀI ĐẶT =====
+Tabs.Settings:AddSection("Anti-Kick")
+Tabs.Settings:AddToggle("AntiKick", { Title = "Chống Kick / Safe Mode", Default = true }):OnChanged(function(v) env.AntiKick = v end)
+Tabs.Settings:AddSlider("MaxKillPerMinute", { Title = "Giới Hạn Kill/Phút", Default = 80, Min = 20, Max = 150, Increment = 5 }):OnChanged(function(v) env.MaxKillPerMinute = v end)
+Tabs.Settings:AddSlider("MaxKillAuraPerMinute", { Title = "Giới Hạn Aura/Phút", Default = 160, Min = 40, Max = 300, Increment = 10 }):OnChanged(function(v) env.MaxKillAuraPerMinute = v end)
+
+-- =====================================================
+-- ============ NÚT ẨN/HIỆN GUI CHO MOBILE ============
+-- =====================================================
+local guiParent = gethui and gethui() or game:GetService("CoreGui")
+local toggleGui = Instance.new("ScreenGui")
+toggleGui.Name = "ThanhLoiToggle_" .. tostring(math.random(1, 999999))
+toggleGui.ResetOnSpawn = false
+toggleGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+pcall(function() toggleGui.Parent = guiParent end)
+
+-- Nút tròn nhỏ ở góc phải trên
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Name = "ToggleBtn"
+toggleBtn.Size = UDim2.fromOffset(env.MobileMode and 55 or 45, env.MobileMode and 55 or 45)
+toggleBtn.Position = UDim2.new(1, -70, 0, 60)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+toggleBtn.BackgroundTransparency = 0.1
+toggleBtn.Text = "TL"
+toggleBtn.TextColor3 = Color3.fromRGB(0, 200, 255)
+toggleBtn.TextScaled = true
+toggleBtn.Font = Enum.Font.GothamBold
+toggleBtn.BorderSizePixel = 0
+toggleBtn.AutoButtonColor = true
+toggleBtn.Parent = toggleGui
+
+local btnCorner = Instance.new("UICorner")
+btnCorner.CornerRadius = UDim.new(1, 0)
+btnCorner.Parent = toggleBtn
+
+local btnStroke = Instance.new("UIStroke")
+btnStroke.Color = Color3.fromRGB(0, 200, 255)
+btnStroke.Thickness = 2
+btnStroke.Parent = toggleBtn
+
+-- Kéo thả nút bằng cảm ứng / chuột
+local dragging = false
+local dragStart, startPos
+toggleBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = toggleBtn.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+toggleBtn.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        toggleBtn.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+-- Ẩn/hiện toàn bộ GUI Fluent
+local guiVisible = true
+local function ToggleFluentGUI()
+    guiVisible = not guiVisible
+    -- Tìm ScreenGui của Fluent trong CoreGui
+    for _, gui in ipairs(game:GetService("CoreGui"):GetChildren()) do
+        if gui:IsA("ScreenGui") and (gui.Name:find("Fluent") or gui.Name:find("fluent")) then
+            gui.Enabled = guiVisible
+        end
+    end
+    -- Fallback: tìm trong PlayerGui
+    for _, gui in ipairs(LocalPlayer:WaitForChild("PlayerGui"):GetChildren()) do
+        if gui:IsA("ScreenGui") and (gui.Name:find("Fluent") or gui.Name:find("fluent")) then
+            gui.Enabled = guiVisible
+        end
+    end
+    toggleBtn.Text = guiVisible and "TL" or "X"
+    toggleBtn.TextColor3 = guiVisible and Color3.fromRGB(0, 200, 255) or Color3.fromRGB(255, 80, 80)
+    btnStroke.Color = guiVisible and Color3.fromRGB(0, 200, 255) or Color3.fromRGB(255, 80, 80)
+end
+
+toggleBtn.MouseButton1Click:Connect(ToggleFluentGUI)
+toggleBtn.TouchTap:Connect(ToggleFluentGUI)
+
+-- =====================================================
+-- Save & Interface
+-- =====================================================
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({})
+InterfaceManager:SetFolder("ThanhLoiHub")
+SaveManager:SetFolder("ThanhLoiHub/Configs")
+SaveManager:BuildConfigSection(Tabs.Settings)
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
 
 Window:SelectTab(1)
-Fluent:Notify({ Title = "Thành Lợi Hub", Content = "Đã gộp Kill Aura vào Tab Farm Chính và fix lỗi mất tab!", Duration = 5 })
+Fluent:Notify({
+    Title = "Thành Lợi Hub",
+    Content = "v16.8 Mobile - Nhấn nút TL góc phải để ẩn/hiện GUI!",
+    Duration = 6
+})
