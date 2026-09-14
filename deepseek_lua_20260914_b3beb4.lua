@@ -1,6 +1,5 @@
--- [[ THÀNH LỢI HUB - AOT REVOLUTION v11.0 - FLUENT GUI EDITION ]]
--- Đã xóa toàn bộ code Blox Fruits, chỉ giữ GUI Fluent
--- Code chức năng: AOT (Attack on Titan Revolution)
+-- [[ THÀNH LỢI HUB - AOT REVOLUTION v11.1 - FLUENT WHITE THEME ]]
+-- GUI nhỏ gọn, theme trắng, combo tween speed, slider kéo mượt
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -28,12 +27,24 @@ _G.CameraSmoothness = 0.5
 _G.HitCount = 3
 _G.HitSpamDelay = 0.04
 _G.AutoKillSpeedMode = "Nhanh"
+_G.TweenSpeedMode = "Nhanh"  -- Combo tween speed
 _G.AntiKick = true
 _G.KickAvoidDelay = 0.5
 _G.MaxKillPerMinute = 80
 _G.RandomizeDelay = true
 _G.DamageType = "Nape"
+_G.ThemeColor = "Trắng"  -- Màu chủ đạo
 local DAMAGE_KEY = "&@&*&@&"
+
+-- Bảng màu
+local ColorThemes = {
+    ["Trắng"] = {Primary = Color3.fromRGB(240, 240, 245), Secondary = Color3.fromRGB(255, 255, 255), Text = Color3.fromRGB(30, 30, 40), Accent = Color3.fromRGB(180, 180, 200)},
+    ["Xanh Dương"] = {Primary = Color3.fromRGB(30, 100, 200), Secondary = Color3.fromRGB(45, 120, 230), Text = Color3.fromRGB(255, 255, 255), Accent = Color3.fromRGB(100, 180, 255)},
+    ["Đỏ"] = {Primary = Color3.fromRGB(200, 40, 40), Secondary = Color3.fromRGB(230, 60, 60), Text = Color3.fromRGB(255, 255, 255), Accent = Color3.fromRGB(255, 120, 120)},
+    ["Xanh Lá"] = {Primary = Color3.fromRGB(40, 180, 80), Secondary = Color3.fromRGB(60, 210, 100), Text = Color3.fromRGB(255, 255, 255), Accent = Color3.fromRGB(120, 255, 150)},
+    ["Tím"] = {Primary = Color3.fromRGB(130, 60, 200), Secondary = Color3.fromRGB(150, 80, 230), Text = Color3.fromRGB(255, 255, 255), Accent = Color3.fromRGB(200, 140, 255)},
+    ["Đen"] = {Primary = Color3.fromRGB(20, 20, 30), Secondary = Color3.fromRGB(35, 35, 50), Text = Color3.fromRGB(240, 240, 250), Accent = Color3.fromRGB(80, 80, 120)},
+}
 
 -- ============ PATHS ============
 local DamageEvent = ReplicatedStorage:FindFirstChild("DamageEvent")
@@ -314,9 +325,13 @@ local function AutoKillLoop()
                 aimTarget = titan.Model
                 local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
                 local activeTweenSpeed = _G.TweenSpeed
-                if _G.AutoKillSpeedMode == "Siêu Chậm" then activeTweenSpeed = 80
-                elseif _G.AutoKillSpeedMode == "Chậm" then activeTweenSpeed = 150
-                elseif _G.AutoKillSpeedMode == "Siêu Nhanh" then activeTweenSpeed = 600 end
+                -- Tween speed dựa trên combo riêng
+                if _G.TweenSpeedMode == "Rất Chậm" then activeTweenSpeed = 50
+                elseif _G.TweenSpeedMode == "Chậm" then activeTweenSpeed = 120
+                elseif _G.TweenSpeedMode == "Bình Thường" then activeTweenSpeed = 250
+                elseif _G.TweenSpeedMode == "Nhanh" then activeTweenSpeed = 450
+                elseif _G.TweenSpeedMode == "Rất Nhanh" then activeTweenSpeed = 700
+                elseif _G.TweenSpeedMode == "Cực Nhanh" then activeTweenSpeed = 1000 end
                 if myRoot and titan.Dist <= 15 then
                     MultiHit(titan.Model); RecordKill()
                 elseif _G.LongRange and titan.Dist <= 80 then
@@ -327,12 +342,12 @@ local function AutoKillLoop()
                         local targetPos = napeCF.Position - (napeCF.LookVector * _G.BackDistance)
                         pcall(function()
                             local dist = (myRoot.Position - targetPos).Magnitude
-                            local maxTime = (_G.AutoKillSpeedMode == "Siêu Nhanh") and 0.1 or 0.3
+                            local maxTime = (_G.TweenSpeedMode == "Cực Nhanh") and 0.1 or 0.3
                             local time = math.clamp(dist / activeTweenSpeed, 0.05, maxTime)
                             local tw = TweenService:Create(myRoot, TweenInfo.new(time, Enum.EasingStyle.Linear), {CFrame = CFrame.new(targetPos, napeCF.Position)})
                             tw:Play(); tw.Completed:Wait()
                         end)
-                        local postWait = (_G.AutoKillSpeedMode == "Siêu Nhanh") and 0.01 or 0.05
+                        local postWait = (_G.TweenSpeedMode == "Cực Nhanh") and 0.01 or 0.05
                         task.wait(postWait)
                         MultiHit(titan.Model); RecordKill()
                     end
@@ -362,19 +377,22 @@ local function AutoKillHumanLoop()
                 if myRoot and human.Root then
                     local targetCF = human.Root.CFrame * CFrame.new(0, 0, 3)
                     local activeTweenSpeed = _G.TweenSpeed
-                    if _G.AutoKillSpeedMode == "Siêu Chậm" then activeTweenSpeed = 80
-                    elseif _G.AutoKillSpeedMode == "Chậm" then activeTweenSpeed = 150
-                    elseif _G.AutoKillSpeedMode == "Siêu Nhanh" then activeTweenSpeed = 600 end
+                    if _G.TweenSpeedMode == "Rất Chậm" then activeTweenSpeed = 50
+                    elseif _G.TweenSpeedMode == "Chậm" then activeTweenSpeed = 120
+                    elseif _G.TweenSpeedMode == "Bình Thường" then activeTweenSpeed = 250
+                    elseif _G.TweenSpeedMode == "Nhanh" then activeTweenSpeed = 450
+                    elseif _G.TweenSpeedMode == "Rất Nhanh" then activeTweenSpeed = 700
+                    elseif _G.TweenSpeedMode == "Cực Nhanh" then activeTweenSpeed = 1000 end
                     pcall(function()
                         local dist = (myRoot.Position - targetCF.Position).Magnitude
                         if dist > 15 then
-                            local maxTime = (_G.AutoKillSpeedMode == "Siêu Nhanh") and 0.08 or 0.25
+                            local maxTime = (_G.TweenSpeedMode == "Cực Nhanh") and 0.08 or 0.25
                             local time = math.clamp(dist / activeTweenSpeed, 0.04, maxTime)
                             local tw = TweenService:Create(myRoot, TweenInfo.new(time, Enum.EasingStyle.Linear), {CFrame = targetCF})
                             tw:Play(); tw.Completed:Wait()
                         else myRoot.CFrame = targetCF end
                     end)
-                    local postWait = (_G.AutoKillSpeedMode == "Siêu Nhanh") and 0.01 or 0.05
+                    local postWait = (_G.TweenSpeedMode == "Cực Nhanh") and 0.01 or 0.05
                     task.wait(postWait)
                     MultiHit(human.Model, "Body"); RecordKill()
                 end
@@ -437,88 +455,107 @@ RunService.RenderStepped:Connect(function()
 end)
 
 -- =====================================================
--- ============ FLUENT GUI ===============
+-- ============ FLUENT GUI - SMALL WHITE THEME ===============
 -- =====================================================
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local Window = Fluent:CreateWindow({
-    Title = "Thành Lợi Hub | AOT Revolution",
-    SubTitle = "v11.0 - Fluent Edition",
-    TabWidth = 155,
-    Size = UDim2.fromOffset(520, 400),
-    Acrylic = true,
-    Theme = "Dark",
+    Title = "Thành Lợi | AOT",
+    SubTitle = "v11.1",
+    TabWidth = 120,        -- Nhỏ hơn
+    Size = UDim2.fromOffset(420, 320),  -- Nhỏ hơn
+    Acrylic = false,
+    Theme = "Light",       -- Theme sáng (trắng)
     MinimizeKey = Enum.KeyCode.End
 })
 
+-- Áp dụng màu chủ đạo
+local function ApplyTheme(themeName)
+    local theme = ColorThemes[themeName] or ColorThemes["Trắng"]
+    _G.ThemeColor = themeName
+    pcall(function()
+        Fluent:SetTheme({
+            [1] = theme.Primary,
+            [2] = theme.Secondary,
+            [3] = theme.Text,
+            [4] = theme.Accent,
+            [5] = theme.Accent,
+            [6] = theme.Secondary,
+            [7] = theme.Text,
+        })
+    end)
+end
+
 local Tabs = {
-    Main = Window:AddTab({ Title = "Farm Chính", Icon = "⚔️" }),
-    Settings = Window:AddTab({ Title = "Cài Đặt & Combo", Icon = "⚙️" }),
-    Misc = Window:AddTab({ Title = "Tiện Ích Khác", Icon = "🔧" }),
-    Info = Window:AddTab({ Title = "Thông Tin", Icon = "ℹ️" })
+    Main = Window:AddTab({ Title = "Farm", Icon = "⚔" }),
+    Settings = Window:AddTab({ Title = "Cài Đặt", Icon = "⚙" }),
+    Misc = Window:AddTab({ Title = "Khác", Icon = "🔧" }),
+    Color = Window:AddTab({ Title = "Màu", Icon = "🎨" })
 }
 
 -- ============ TAB MAIN ============
 Tabs.Main:AddParagraph({
     Title = "🎯 AOT Revolution",
-    Content = "Auto Kill Titan, Human, Kill Aura, Anti-Grab, Auto Aim, Long Range"
+    Content = "Auto Kill / Kill Aura / Anti-Grab / Aim"
 })
 
 Tabs.Main:AddToggle("AutoKill", {
     Title = "Auto Kill Titan",
-    Description = "Tự động tìm và tiêu diệt Titan gần nhất",
     Default = false
 }):OnChanged(function(v) _G.AutoKill = v end)
 
 Tabs.Main:AddToggle("AutoKillHuman", {
-    Title = "Auto Kill Human / Sniper",
-    Description = "Tự động tiêu diệt người chơi và lính Sniper",
+    Title = "Auto Kill Human/Sniper",
     Default = false
 }):OnChanged(function(v) _G.AutoKillHuman = v end)
 
 Tabs.Main:AddToggle("KillAura", {
     Title = "Kill Aura",
-    Description = "Đứng một chỗ chém gáy mọi Titan trong bán kính",
     Default = false
 }):OnChanged(function(v) _G.KillAura = v end)
 
 Tabs.Main:AddToggle("AntiGrab", {
     Title = "Anti-Grab",
-    Description = "Chống Titan tóm và tự động phản đòn",
     Default = true
 }):OnChanged(function(v) _G.AntiGrab = v end)
 
 Tabs.Main:AddToggle("AutoAim", {
     Title = "Auto Aim",
-    Description = "Tự động ngắm vào gáy Titan",
     Default = true
 }):OnChanged(function(v) _G.AutoAim = v end)
 
 Tabs.Main:AddToggle("LongRange", {
     Title = "Long Range",
-    Description = "Chém xa linh hoạt (tự động về vị trí cũ)",
     Default = true
 }):OnChanged(function(v) _G.LongRange = v end)
 
 -- ============ TAB SETTINGS ============
-Tabs.Settings:AddSection("Combo Settings")
+Tabs.Settings:AddSection("Combo Tốc Độ Tấn Công")
 
 Tabs.Settings:AddDropdown("SpeedMode", {
-    Title = "Tốc Độ Combo",
-    Description = "Chọn tốc độ tấn công",
+    Title = "Tốc Độ Đánh",
     Values = {"Siêu Chậm", "Chậm", "Nhanh", "Siêu Nhanh"},
     Default = "Nhanh",
     Multi = false
 }):OnChanged(function(v)
     _G.AutoKillSpeedMode = v
-    if v == "Siêu Chậm" then _G.TweenSpeed = 80
-    elseif v == "Chậm" then _G.TweenSpeed = 150
-    elseif v == "Nhanh" then _G.TweenSpeed = 350
-    elseif v == "Siêu Nhanh" then _G.TweenSpeed = 600 end
 end)
 
+Tabs.Settings:AddSection("Combo Tốc Độ Bay (Tween)")
+
+Tabs.Settings:AddDropdown("TweenSpeedMode", {
+    Title = "Tween Speed",
+    Description = "Tốc độ bay tới Titan",
+    Values = {"Rất Chậm", "Chậm", "Bình Thường", "Nhanh", "Rất Nhanh", "Cực Nhanh"},
+    Default = "Nhanh",
+    Multi = false
+}):OnChanged(function(v)
+    _G.TweenSpeedMode = v
+end)
+
+Tabs.Settings:AddSection("Chỉ Số")
+
 Tabs.Settings:AddSlider("AuraRadius", {
-    Title = "Bán Kính Kill Aura",
-    Description = "Bán kính phát hiện Titan",
+    Title = "Bán Kính Aura",
     Default = 300,
     Min = 50,
     Max = 1000,
@@ -527,7 +564,6 @@ Tabs.Settings:AddSlider("AuraRadius", {
 
 Tabs.Settings:AddSlider("BackDistance", {
     Title = "Khoảng Cách Sau Lưng",
-    Description = "Khoảng cách đứng sau gáy Titan",
     Default = 4,
     Min = 1,
     Max = 20,
@@ -536,7 +572,6 @@ Tabs.Settings:AddSlider("BackDistance", {
 
 Tabs.Settings:AddSlider("HitCount", {
     Title = "Số Hit Mỗi Lần",
-    Description = "Số lần đánh mỗi lần tấn công",
     Default = 3,
     Min = 1,
     Max = 20,
@@ -544,132 +579,99 @@ Tabs.Settings:AddSlider("HitCount", {
 }):OnChanged(function(v) _G.HitCount = v end)
 
 Tabs.Settings:AddSlider("HitSpamDelay", {
-    Title = "Delay Giữa Các Hit",
-    Description = "Thời gian chờ giữa các hit",
+    Title = "Delay Hit",
     Default = 0.04,
     Min = 0.01,
     Max = 0.5,
     Rounding = 0.01
 }):OnChanged(function(v) _G.HitSpamDelay = v end)
 
-Tabs.Settings:AddSection("Damage Settings")
-
-Tabs.Settings:AddSlider("DamageValue", {
-    Title = "Damage Multiplier",
-    Description = "Giá trị sát thương (1-Hit)",
-    Default = 99999,
-    Min = 100,
-    Max = 999999,
-    Rounding = 1
-}):OnChanged(function(v) _G.DamageValue = v end)
-
-Tabs.Settings:AddDropdown("DamageType", {
-    Title = "Loại Sát Thương",
-    Description = "Chọn vị trí gây sát thương",
-    Values = {"Nape", "Body", "Head"},
-    Default = "Nape",
-    Multi = false
-}):OnChanged(function(v) _G.DamageType = v end)
-
--- ============ TAB MISC ============
-Tabs.Misc:AddSection("Anti-Kick System")
-
-Tabs.Misc:AddToggle("AntiKick", {
-    Title = "Anti-Kick System",
-    Description = "Chống văng khỏi server khi farm quá nhanh",
-    Default = true
-}):OnChanged(function(v) _G.AntiKick = v end)
-
-Tabs.Misc:AddSlider("MaxKillPerMinute", {
-    Title = "Max Kill / Phút",
-    Description = "Số lượng kill tối đa mỗi phút",
-    Default = 80,
-    Min = 20,
-    Max = 200,
-    Rounding = 1
-}):OnChanged(function(v) _G.MaxKillPerMinute = v end)
-
-Tabs.Misc:AddSlider("KickAvoidDelay", {
-    Title = "Delay Chống Kick",
-    Description = "Thời gian chờ giữa các kill",
-    Default = 0.5,
-    Min = 0.1,
-    Max = 2,
-    Rounding = 0.1
-}):OnChanged(function(v) _G.KickAvoidDelay = v end)
-
-Tabs.Misc:AddToggle("RandomizeDelay", {
-    Title = "Randomize Delay",
-    Description = "Random thời gian chờ để tránh bị phát hiện",
-    Default = true
-}):OnChanged(function(v) _G.RandomizeDelay = v end)
-
-Tabs.Misc:AddSection("Hack Features")
-
-Tabs.Misc:AddToggle("OneHit", {
-    Title = "1-Hit Damage",
-    Description = "Sát thương cực lớn (1 hit kill)",
-    Default = true
-}):OnChanged(function(v) _G.OneHit = v end)
-
-Tabs.Misc:AddToggle("InfGas", {
-    Title = "Vô Hạn Gas",
-    Description = "Không bao giờ hết gas ODM",
-    Default = true
-}):OnChanged(function(v) _G.InfGas = v end)
-
-Tabs.Misc:AddToggle("InfBlades", {
-    Title = "Vô Hạn Kiếm",
-    Description = "Không bao giờ hết kiếm",
-    Default = true
-}):OnChanged(function(v) _G.InfBlades = v end)
-
-Tabs.Misc:AddSection("Camera Settings")
-
-Tabs.Misc:AddSlider("CameraSmoothness", {
+Tabs.Settings:AddSlider("CameraSmoothness", {
     Title = "Độ Mượt Camera",
-    Description = "Độ mượt khi auto aim",
     Default = 0.5,
     Min = 0.1,
     Max = 1,
     Rounding = 0.1
 }):OnChanged(function(v) _G.CameraSmoothness = v end)
 
-Tabs.Misc:AddSlider("TweenSpeed", {
-    Title = "Tốc Độ Di Chuyển",
-    Description = "Tốc độ tween đến mục tiêu",
-    Default = 350,
-    Min = 50,
-    Max = 1000,
+-- ============ TAB MISC ============
+Tabs.Misc:AddSection("Damage")
+
+Tabs.Misc:AddSlider("DamageValue", {
+    Title = "Damage Multiplier",
+    Default = 99999,
+    Min = 100,
+    Max = 999999,
     Rounding = 1
-}):OnChanged(function(v) _G.TweenSpeed = v end)
+}):OnChanged(function(v) _G.DamageValue = v end)
 
--- ============ TAB INFO ============
-Tabs.Info:AddParagraph({
-    Title = "📋 Thông Tin Script",
-    Content = "Tên: Thành Lợi Hub - AOT Revolution\nPhiên bản: v11.0 - Fluent Edition\nTác giả: Thành Lợi\n\n✅ Hỗ trợ: Auto Kill, Kill Aura, Anti-Grab, Auto Aim, Long Range, 1-Hit, Inf Gas, Inf Blades, Anti-Kick\n\n⚠️ Lưu ý: Sử dụng cẩn thận, có thể bị ban nếu lạm dụng!"
-})
+Tabs.Misc:AddDropdown("DamageType", {
+    Title = "Loại Sát Thương",
+    Values = {"Nape", "Body", "Head"},
+    Default = "Nape",
+    Multi = false
+}):OnChanged(function(v) _G.DamageType = v end)
 
-Tabs.Info:AddButton({
-    Title = "📖 Hướng Dẫn Sử Dụng",
-    Description = "Xem hướng dẫn chi tiết",
+Tabs.Misc:AddSection("Anti-Kick")
+
+Tabs.Misc:AddToggle("AntiKick", {
+    Title = "Anti-Kick",
+    Default = true
+}):OnChanged(function(v) _G.AntiKick = v end)
+
+Tabs.Misc:AddSlider("MaxKillPerMinute", {
+    Title = "Max Kill/Phút",
+    Default = 80,
+    Min = 20,
+    Max = 200,
+    Rounding = 1
+}):OnChanged(function(v) _G.MaxKillPerMinute = v end)
+
+Tabs.Misc:AddToggle("RandomizeDelay", {
+    Title = "Random Delay",
+    Default = true
+}):OnChanged(function(v) _G.RandomizeDelay = v end)
+
+Tabs.Misc:AddSection("Hack")
+
+Tabs.Misc:AddToggle("OneHit", {
+    Title = "1-Hit Damage",
+    Default = true
+}):OnChanged(function(v) _G.OneHit = v end)
+
+Tabs.Misc:AddToggle("InfGas", {
+    Title = "Vô Hạn Gas",
+    Default = true
+}):OnChanged(function(v) _G.InfGas = v end)
+
+Tabs.Misc:AddToggle("InfBlades", {
+    Title = "Vô Hạn Kiếm",
+    Default = true
+}):OnChanged(function(v) _G.InfBlades = v end)
+
+-- ============ TAB COLOR ============
+Tabs.Color:AddSection("Chỉnh Màu GUI")
+
+Tabs.Color:AddDropdown("ThemeColor", {
+    Title = "Chọn Màu Chủ Đạo",
+    Description = "Đổi màu toàn bộ GUI",
+    Values = {"Trắng", "Xanh Dương", "Đỏ", "Xanh Lá", "Tím", "Đen"},
+    Default = "Trắng",
+    Multi = false
+}):OnChanged(function(v)
+    ApplyTheme(v)
+end)
+
+Tabs.Color:AddButton({
+    Title = "🔄 Reset Về Màu Trắng",
+    Description = "Khôi phục màu mặc định",
     Callback = function()
-        Fluent:Dialog({
-            Title = "Hướng Dẫn Sử Dụng",
-            Content = "1. Bật Auto Kill Titan để tự động farm\n2. Bật Anti-Grab để chống bị tóm\n3. Bật Auto Aim để tự động ngắm gáy\n4. Chọn tốc độ combo phù hợp\n5. Điều chỉnh bán kính Kill Aura nếu cần\n6. Bật Anti-Kick nếu bị văng\n\nChúc bạn chơi vui vẻ!",
-            Buttons = {
-                {
-                    Title = "Đã Hiểu",
-                    Callback = function() end
-                }
-            }
-        })
+        ApplyTheme("Trắng")
     end
 })
 
-Tabs.Info:AddButton({
+Tabs.Color:AddButton({
     Title = "🔄 Reset Tất Cả Cài Đặt",
-    Description = "Khôi phục cài đặt mặc định",
     Callback = function()
         _G.AutoKill = false
         _G.AutoKillHuman = false
@@ -681,22 +683,21 @@ Tabs.Info:AddButton({
         _G.InfGas = true
         _G.InfBlades = true
         _G.BackDistance = 4.0
-        _G.KillDelay = 0.15
         _G.DamageValue = 99999
         _G.AuraRadius = 300
-        _G.TweenSpeed = 350
         _G.CameraSmoothness = 0.5
         _G.HitCount = 3
         _G.HitSpamDelay = 0.04
         _G.AutoKillSpeedMode = "Nhanh"
+        _G.TweenSpeedMode = "Nhanh"
         _G.AntiKick = true
-        _G.KickAvoidDelay = 0.5
         _G.MaxKillPerMinute = 80
         _G.RandomizeDelay = true
         _G.DamageType = "Nape"
+        ApplyTheme("Trắng")
         Fluent:Notify({
             Title = "Thành Lợi Hub",
-            Content = "Đã reset tất cả cài đặt!",
+            Content = "Đã reset tất cả!",
             Duration = 3
         })
     end
@@ -723,12 +724,12 @@ end
 
 local ToggleButton = Instance.new("TextButton")
 ToggleButton.Name = "OpenButton"
-ToggleButton.Size = UDim2.new(0, 48, 0, 48)
+ToggleButton.Size = UDim2.new(0, 44, 0, 44)
 ToggleButton.Position = UDim2.new(0, 20, 0.4, 0)
-ToggleButton.BackgroundColor3 = Color3.fromRGB(15, 23, 42)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 ToggleButton.Text = "AOT"
-ToggleButton.TextColor3 = Color3.fromRGB(56, 189, 248)
-ToggleButton.TextSize = 13
+ToggleButton.TextColor3 = Color3.fromRGB(40, 40, 50)
+ToggleButton.TextSize = 12
 ToggleButton.Font = Enum.Font.GothamBold
 ToggleButton.Active = true
 ToggleButton.Draggable = true
@@ -738,7 +739,7 @@ local TCorner = Instance.new("UICorner")
 TCorner.CornerRadius = UDim.new(0, 10)
 TCorner.Parent = ToggleButton
 local TStroke = Instance.new("UIStroke")
-TStroke.Color = Color3.fromRGB(56, 189, 248)
+TStroke.Color = Color3.fromRGB(180, 180, 200)
 TStroke.Thickness = 2
 TStroke.Parent = ToggleButton
 
@@ -746,5 +747,5 @@ ToggleButton.MouseButton1Click:Connect(function()
     game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.End, false, game)
 end)
 
-print("✅ Thành Lợi Hub - AOT Revolution v11.0 (Fluent Edition) đã load thành công!")
-print("📌 Nhấn phím END hoặc click nút AOT để mở/đóng menu")
+print("✅ Thành Lợi Hub - AOT Revolution v11.1 (Small White Theme)")
+print("📌 Nhấn END hoặc nút AOT để mở menu")
