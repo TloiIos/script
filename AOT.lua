@@ -1,5 +1,4 @@
--- [[ THÀNH LỢI HUB - AOT REVOLUTION v11.2 - FIXED ]]
--- Fix: functions, mobile slider, color theme, tween speed
+-- [[ THÀNH LỢI HUB - AOT REVOLUTION v11.3 - FIX HIDE + COLOR ]]
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -7,9 +6,9 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local VirtualInputManager = game:GetService("VirtualInputManager")
+local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
 
--- Dùng getgenv() để không bị reset
 local env = getgenv and getgenv() or _G
 env.AutoKill = false
 env.AutoKillHuman = false
@@ -39,8 +38,7 @@ env.ThemeColor = "Trắng"
 
 local DAMAGE_KEY = "&@&*&@&"
 
--- ============ TWEEN SPEED CONFIG (FIX) ============
--- time = dist / speed, KHÔNG clamp cứng, chỉ clamp min để tránh 0
+-- ============ TWEEN SPEED ============
 local TweenSpeedConfig = {
     ["Rất Chậm"]   = 80,
     ["Chậm"]       = 150,
@@ -57,7 +55,6 @@ local TweenMinTime = {
     ["Rất Nhanh"]  = 0.03,
     ["Cực Nhanh"]  = 0.02,
 }
-
 local function GetTweenTime(dist)
     local speed = TweenSpeedConfig[env.TweenSpeedMode] or 500
     local minT = TweenMinTime[env.TweenSpeedMode] or 0.05
@@ -67,14 +64,14 @@ local function GetTweenTime(dist)
     return t
 end
 
--- Bảng màu
+-- ============ COLOR THEMES ============
 local ColorThemes = {
-    ["Trắng"]     = {Primary = Color3.fromRGB(245,245,250), Secondary = Color3.fromRGB(255,255,255), Text = Color3.fromRGB(25,25,35), Accent = Color3.fromRGB(120,120,180)},
-    ["Xanh Dương"]= {Primary = Color3.fromRGB(30,100,200), Secondary = Color3.fromRGB(45,120,230), Text = Color3.fromRGB(255,255,255), Accent = Color3.fromRGB(100,180,255)},
-    ["Đỏ"]        = {Primary = Color3.fromRGB(200,40,40), Secondary = Color3.fromRGB(230,60,60), Text = Color3.fromRGB(255,255,255), Accent = Color3.fromRGB(255,120,120)},
-    ["Xanh Lá"]   = {Primary = Color3.fromRGB(40,180,80), Secondary = Color3.fromRGB(60,210,100), Text = Color3.fromRGB(255,255,255), Accent = Color3.fromRGB(120,255,150)},
-    ["Tím"]       = {Primary = Color3.fromRGB(130,60,200), Secondary = Color3.fromRGB(150,80,230), Text = Color3.fromRGB(255,255,255), Accent = Color3.fromRGB(200,140,255)},
-    ["Đen"]       = {Primary = Color3.fromRGB(20,20,30), Secondary = Color3.fromRGB(35,35,50), Text = Color3.fromRGB(240,240,250), Accent = Color3.fromRGB(80,80,120)},
+    ["Trắng"]      = {Primary = Color3.fromRGB(245,245,250), Secondary = Color3.fromRGB(255,255,255), Text = Color3.fromRGB(25,25,35), Accent = Color3.fromRGB(120,120,180)},
+    ["Xanh Dương"] = {Primary = Color3.fromRGB(30,100,200), Secondary = Color3.fromRGB(45,120,230), Text = Color3.fromRGB(255,255,255), Accent = Color3.fromRGB(100,180,255)},
+    ["Đỏ"]         = {Primary = Color3.fromRGB(200,40,40), Secondary = Color3.fromRGB(230,60,60), Text = Color3.fromRGB(255,255,255), Accent = Color3.fromRGB(255,120,120)},
+    ["Xanh Lá"]    = {Primary = Color3.fromRGB(40,180,80), Secondary = Color3.fromRGB(60,210,100), Text = Color3.fromRGB(255,255,255), Accent = Color3.fromRGB(120,255,150)},
+    ["Tím"]        = {Primary = Color3.fromRGB(130,60,200), Secondary = Color3.fromRGB(150,80,230), Text = Color3.fromRGB(255,255,255), Accent = Color3.fromRGB(200,140,255)},
+    ["Đen"]        = {Primary = Color3.fromRGB(20,20,30), Secondary = Color3.fromRGB(35,35,50), Text = Color3.fromRGB(240,240,250), Accent = Color3.fromRGB(80,80,120)},
 }
 
 -- ============ PATHS ============
@@ -116,7 +113,7 @@ local function GetSmartDelay()
     return base
 end
 
--- ============ 1-HIT + INF ============
+-- ============ HACKS ============
 local function ApplyHacks()
     local odm = GetMyOdm()
     if odm then
@@ -175,7 +172,7 @@ local function MultiHit(targetModel, damageType)
     end)
 end
 
--- ============ TÌM TITAN ============
+-- ============ FIND TITAN ============
 local function GetNearestTitan()
     local tf = GetTitansFolder()
     if not tf then return nil end
@@ -203,7 +200,7 @@ local function GetNearestTitan()
     return nearest
 end
 
--- ============ TÌM HUMAN ============
+-- ============ FIND HUMAN ============
 local function GetNearestHuman()
     local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
     if not myRoot then return nil end
@@ -323,7 +320,7 @@ local function LongRangeSlash(titan)
     end)
 end
 
--- ============ AUTO KILL LOOP ============
+-- ============ AUTO KILL ============
 local autoKillRunning = false
 local function AutoKillLoop()
     if autoKillRunning then return end
@@ -463,15 +460,16 @@ RunService.RenderStepped:Connect(function()
 end)
 
 -- =====================================================
--- ============ FLUENT GUI - FIXED ================
+-- ============ FLUENT GUI =============================
 -- =====================================================
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
-local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+-- Lưu reference đến ScreenGui của Fluent
+local FluentScreenGui = nil
 
 local Window = Fluent:CreateWindow({
     Title = "Thành Lợi | AOT",
-    SubTitle = "v11.2 FIXED",
+    SubTitle = "v11.3 FIXED",
     TabWidth = 130,
     Size = UDim2.fromOffset(440, 340),
     Acrylic = false,
@@ -479,36 +477,101 @@ local Window = Fluent:CreateWindow({
     MinimizeKey = Enum.KeyCode.End
 })
 
--- ============ FIX COLOR THEME ============
--- Fluent dùng Theme table với các key cụ thể
+-- FIX: Tìm ScreenGui của Fluent sau khi tạo
+local function FindFluentScreenGui()
+    local searchIn = {CoreGui, LocalPlayer:WaitForChild("PlayerGui")}
+    for _, parent in ipairs(searchIn) do
+        for _, gui in ipairs(parent:GetChildren()) do
+            if gui:IsA("ScreenGui") then
+                -- Fluent thường đặt tên là "Fluent" hoặc có chứa "Fluent"
+                if gui.Name:lower():find("fluent") then
+                    return gui
+                end
+            end
+        end
+    end
+    return nil
+end
+
+task.wait(0.5)
+FluentScreenGui = FindFluentScreenGui()
+
+-- ============ FIX ĐỔI MÀU ============
 local function ApplyTheme(themeName)
     local t = ColorThemes[themeName] or ColorThemes["Trắng"]
     env.ThemeColor = themeName
+    
+    -- Cách 1: Thử SetTheme của Fluent
     pcall(function()
         Fluent:SetTheme({
-            -- Background colors
             Background = t.Primary,
             BackgroundSecondary = t.Secondary,
-            -- Text
+            BackgroundTertiary = t.Secondary,
             Text = t.Text,
             SubText = t.Accent,
-            -- Accent
-            Accent = t.Accent,
-            -- Element colors
             Element = t.Secondary,
             ElementSecondary = t.Primary,
-            -- Outline
+            ElementTertiary = t.Primary,
+            Accent = t.Accent,
+            AccentSecondary = t.Accent,
             Outline = t.Accent,
-            -- Tab
-            Tab = t.Primary,
-            TabSecondary = t.Secondary,
-            -- Other
+            OutlineSecondary = t.Accent,
             Button = t.Secondary,
             ButtonSecondary = t.Primary,
-            Toggle = t.Accent,
-            Slider = t.Accent,
+            ButtonTertiary = t.Primary,
+            ButtonAccent = t.Accent,
+            Toggle = t.Secondary,
+            ToggleAccent = t.Accent,
+            Slider = t.Secondary,
+            SliderAccent = t.Accent,
             Dropdown = t.Secondary,
+            DropdownAccent = t.Accent,
+            Tab = t.Primary,
+            TabSecondary = t.Secondary,
+            TabAccent = t.Accent,
+            Dialog = t.Secondary,
+            DialogAccent = t.Accent,
+            Notification = t.Secondary,
+            NotificationAccent = t.Accent,
+            Border = t.Accent,
+            BorderSecondary = t.Accent,
         })
+    end)
+    
+    -- Cách 2: Force recolor trực tiếp (fallback chắc chắn)
+    task.spawn(function()
+        task.wait(0.1)
+        if not FluentScreenGui then FluentScreenGui = FindFluentScreenGui() end
+        if not FluentScreenGui then return end
+        
+        for _, obj in ipairs(FluentScreenGui:GetDescendants()) do
+            pcall(function()
+                -- Frames nền tối → đổi sang theme
+                if obj:IsA("Frame") or obj:IsA("TextButton") or obj:IsA("ImageButton") then
+                    local bg = obj.BackgroundColor3
+                    -- Nếu là nền tối (dark) thì đổi
+                    if bg.R < 0.35 and bg.G < 0.35 and bg.B < 0.35 then
+                        obj.BackgroundColor3 = t.Secondary
+                    -- Nếu là nền sáng nhẹ thì đổi sang primary
+                    elseif bg.R > 0.85 and bg.G > 0.85 and bg.B > 0.85 then
+                        obj.BackgroundColor3 = t.Primary
+                    end
+                end
+                
+                -- Text sáng → đổi sang text theme
+                if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+                    local tc = obj.TextColor3
+                    if tc.R > 0.7 and tc.G > 0.7 and tc.B > 0.7 then
+                        obj.TextColor3 = t.Text
+                    end
+                end
+                
+                -- UIStroke → accent
+                if obj:IsA("UIStroke") then
+                    obj.Color = t.Accent
+                end
+            end)
+        end
     end)
 end
 
@@ -520,7 +583,7 @@ local Tabs = {
 }
 
 -- ============ TAB MAIN ============
-Tabs.Main:AddParagraph({ Title = "🎯 AOT Revolution v11.2", Content = "Auto Kill / Kill Aura / Anti-Grab / Aim" })
+Tabs.Main:AddParagraph({ Title = "🎯 AOT Revolution v11.3", Content = "Auto Kill / Kill Aura / Anti-Grab / Aim" })
 
 Tabs.Main:AddToggle("AutoKill", { Title = "Auto Kill Titan", Default = false }):OnChanged(function(v) env.AutoKill = v end)
 Tabs.Main:AddToggle("AutoKillHuman", { Title = "Auto Kill Human/Sniper", Default = false }):OnChanged(function(v) env.AutoKillHuman = v end)
@@ -540,7 +603,7 @@ Tabs.Settings:AddDropdown("SpeedMode", {
 Tabs.Settings:AddSection("Combo Tốc Độ Bay (Tween)")
 Tabs.Settings:AddDropdown("TweenSpeedMode", {
     Title = "Tween Speed",
-    Description = "Tốc độ bay tới Titan (Chậm = bay chậm thật)",
+    Description = "Chậm = bay chậm thật | Cực Nhanh = gần teleport",
     Values = {"Rất Chậm", "Chậm", "Bình Thường", "Nhanh", "Rất Nhanh", "Cực Nhanh"},
     Default = "Nhanh", Multi = false
 }):OnChanged(function(v) env.TweenSpeedMode = v end)
@@ -600,13 +663,14 @@ Tabs.Color:AddButton({
 Window:SelectTab(1)
 
 -- =====================================================
--- ============ FLOATING BUTTON ================
+-- ============ FLOATING BUTTON - FIXED ================
 -- =====================================================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "ThanhLoiHub_AOT"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-pcall(function() ScreenGui.Parent = game:GetService("CoreGui") end)
+ScreenGui.DisplayOrder = 999  -- Luôn trên cùng
+pcall(function() ScreenGui.Parent = CoreGui end)
 if not ScreenGui.Parent then
     pcall(function() ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end)
 end
@@ -632,10 +696,45 @@ TStroke.Color = Color3.fromRGB(180, 180, 200)
 TStroke.Thickness = 2
 TStroke.Parent = ToggleButton
 
--- FIX: Nút hoạt động cả touch + mouse
-ToggleButton.MouseButton1Click:Connect(function()
-    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.End, false, game)
+-- ============ FIX TOGGLE GUI ============
+local guiVisible = true
+
+local function ToggleFluentGUI()
+    guiVisible = not guiVisible
+    
+    -- Tìm lại ScreenGui mỗi lần (đề phòng Fluent tạo lại)
+    if not FluentScreenGui or not FluentScreenGui.Parent then
+        FluentScreenGui = FindFluentScreenGui()
+    end
+    
+    if FluentScreenGui then
+        FluentScreenGui.Enabled = guiVisible
+        -- Đổi màu nút để biết trạng thái
+        if guiVisible then
+            ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            ToggleButton.TextColor3 = Color3.fromRGB(40, 40, 50)
+            ToggleButton.Text = "AOT"
+        else
+            ToggleButton.BackgroundColor3 = Color3.fromRGB(200, 200, 210)
+            ToggleButton.TextColor3 = Color3.fromRGB(120, 120, 130)
+            ToggleButton.Text = "❌"
+        end
+    else
+        -- Fallback: gửi key End
+        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.End, false, game)
+    end
+end
+
+ToggleButton.MouseButton1Click:Connect(ToggleFluentGUI)
+
+-- Cũng có thể dùng phím End để toggle
+UserInputService.InputBegan:Connect(function(input, processed)
+    if processed then return end
+    if input.KeyCode == Enum.KeyCode.End then
+        -- Fluent đã xử lý, không cần làm gì
+    end
 end)
 
-print("✅ Thành Lợi Hub - AOT Revolution v11.2 FIXED")
-print("📌 Nhấn END hoặc nút AOT để mở menu")
+print("✅ Thành Lợi Hub - AOT Revolution v11.3 FIXED")
+print("📌 Nhấn nút AOT để bật/tắt GUI")
+print("📌 Nút chuyển thành ❌ khi GUI đang ẩn")
