@@ -1,4 +1,6 @@
--- [[ THÀNH LỢI HUB - AOT REVOLUTION v11.3 - FIX HIDE + COLOR ]]
+-- [[ THÀNH LỢI HUB - AOT REVOLUTION v15 - FULL FIXED ]]
+-- Fix: Hide menu, Color theme, Tween speed, Kill Aura độc lập
+-- =====================================================
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -9,10 +11,12 @@ local VirtualInputManager = game:GetService("VirtualInputManager")
 local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
 
+-- ============ ENV ============
 local env = getgenv and getgenv() or _G
 env.AutoKill = false
 env.AutoKillHuman = false
 env.KillAura = false
+env.KillAuraHitHuman = true
 env.AntiGrab = true
 env.AutoAim = true
 env.LongRange = true
@@ -32,46 +36,47 @@ env.TweenSpeedMode = "Nhanh"
 env.AntiKick = true
 env.KickAvoidDelay = 0.5
 env.MaxKillPerMinute = 80
+env.MaxKillAuraPerMinute = 160
 env.RandomizeDelay = true
 env.DamageType = "Nape"
 env.ThemeColor = "Trắng"
 
 local DAMAGE_KEY = "&@&*&@&"
 
--- ============ TWEEN SPEED ============
+-- ============ TWEEN SPEED (FIX) ============
 local TweenSpeedConfig = {
-    ["Rất Chậm"]   = 80,
-    ["Chậm"]       = 150,
+    ["Rất Chậm"]   = 60,
+    ["Chậm"]       = 130,
     ["Bình Thường"]= 280,
     ["Nhanh"]      = 500,
-    ["Rất Nhanh"]  = 800,
-    ["Cực Nhanh"]  = 1500,
+    ["Rất Nhanh"]  = 900,
+    ["Cực Nhanh"]  = 1800,
 }
 local TweenMinTime = {
-    ["Rất Chậm"]   = 0.15,
-    ["Chậm"]       = 0.10,
-    ["Bình Thường"]= 0.07,
+    ["Rất Chậm"]   = 0.18,
+    ["Chậm"]       = 0.12,
+    ["Bình Thường"]= 0.08,
     ["Nhanh"]      = 0.05,
     ["Rất Nhanh"]  = 0.03,
-    ["Cực Nhanh"]  = 0.02,
+    ["Cực Nhanh"]  = 0.015,
 }
 local function GetTweenTime(dist)
     local speed = TweenSpeedConfig[env.TweenSpeedMode] or 500
     local minT = TweenMinTime[env.TweenSpeedMode] or 0.05
     local t = dist / speed
     if t < minT then t = minT end
-    if t > 0.5 then t = 0.5 end
+    if t > 0.6 then t = 0.6 end
     return t
 end
 
 -- ============ COLOR THEMES ============
 local ColorThemes = {
-    ["Trắng"]      = {Primary = Color3.fromRGB(245,245,250), Secondary = Color3.fromRGB(255,255,255), Text = Color3.fromRGB(25,25,35), Accent = Color3.fromRGB(120,120,180)},
-    ["Xanh Dương"] = {Primary = Color3.fromRGB(30,100,200), Secondary = Color3.fromRGB(45,120,230), Text = Color3.fromRGB(255,255,255), Accent = Color3.fromRGB(100,180,255)},
-    ["Đỏ"]         = {Primary = Color3.fromRGB(200,40,40), Secondary = Color3.fromRGB(230,60,60), Text = Color3.fromRGB(255,255,255), Accent = Color3.fromRGB(255,120,120)},
-    ["Xanh Lá"]    = {Primary = Color3.fromRGB(40,180,80), Secondary = Color3.fromRGB(60,210,100), Text = Color3.fromRGB(255,255,255), Accent = Color3.fromRGB(120,255,150)},
-    ["Tím"]        = {Primary = Color3.fromRGB(130,60,200), Secondary = Color3.fromRGB(150,80,230), Text = Color3.fromRGB(255,255,255), Accent = Color3.fromRGB(200,140,255)},
-    ["Đen"]        = {Primary = Color3.fromRGB(20,20,30), Secondary = Color3.fromRGB(35,35,50), Text = Color3.fromRGB(240,240,250), Accent = Color3.fromRGB(80,80,120)},
+    ["Trắng"]      = {Primary = Color3.fromRGB(248,248,252), Secondary = Color3.fromRGB(255,255,255), Text = Color3.fromRGB(25,25,35), Accent = Color3.fromRGB(120,120,180), Sub = Color3.fromRGB(140,140,160)},
+    ["Xanh Dương"] = {Primary = Color3.fromRGB(30,100,200), Secondary = Color3.fromRGB(45,120,230), Text = Color3.fromRGB(255,255,255), Accent = Color3.fromRGB(100,180,255), Sub = Color3.fromRGB(180,210,255)},
+    ["Đỏ"]         = {Primary = Color3.fromRGB(200,40,40), Secondary = Color3.fromRGB(230,60,60), Text = Color3.fromRGB(255,255,255), Accent = Color3.fromRGB(255,120,120), Sub = Color3.fromRGB(255,180,180)},
+    ["Xanh Lá"]    = {Primary = Color3.fromRGB(40,180,80), Secondary = Color3.fromRGB(60,210,100), Text = Color3.fromRGB(255,255,255), Accent = Color3.fromRGB(120,255,150), Sub = Color3.fromRGB(180,255,200)},
+    ["Tím"]        = {Primary = Color3.fromRGB(130,60,200), Secondary = Color3.fromRGB(150,80,230), Text = Color3.fromRGB(255,255,255), Accent = Color3.fromRGB(200,140,255), Sub = Color3.fromRGB(220,180,255)},
+    ["Đen"]        = {Primary = Color3.fromRGB(20,20,30), Secondary = Color3.fromRGB(35,35,50), Text = Color3.fromRGB(240,240,250), Accent = Color3.fromRGB(80,80,120), Sub = Color3.fromRGB(150,150,180)},
 }
 
 -- ============ PATHS ============
@@ -245,7 +250,7 @@ local function UpdateAim()
     local p = aimTarget:FindFirstChild("Nape") or aimTarget:FindFirstChild("NapeHitbox") or aimTarget:FindFirstChild("HumanoidRootPart") or aimTarget:FindFirstChild("Head")
     if p then AimAtPart(p) end
 end
-RunService:BindToRenderStep("AOT_Aim_Fix", Enum.RenderPriority.Camera.Value - 1, UpdateAim)
+RunService:BindToRenderStep("AOT_Aim_v15", Enum.RenderPriority.Camera.Value - 1, UpdateAim)
 
 -- ============ ANTI-GRAB ============
 local function GetGrabbingTitan()
@@ -276,7 +281,7 @@ local function AntiGrabLoop()
             task.wait(0.05)
             if not env.AntiGrab then antiGrabRunning = false; break end
             local g = GetGrabbingTitan()
-            if g then MultiHit(g) end
+            if g then MultiHit(g, "Nape") end
         end
     end)
 end
@@ -315,12 +320,12 @@ local function LongRangeSlash(titan)
             local tw = TweenService:Create(myRoot, TweenInfo.new(time, Enum.EasingStyle.Linear), {CFrame = targetCF})
             tw:Play(); tw.Completed:Wait()
         end)
-        MultiHit(titan.Model); RecordKill()
+        MultiHit(titan.Model, "Nape"); RecordKill()
         task.wait(0.25); ReturnToSavedPosition()
     end)
 end
 
--- ============ AUTO KILL ============
+-- ============ AUTO KILL TITAN ============
 local autoKillRunning = false
 local function AutoKillLoop()
     if autoKillRunning then return end
@@ -349,7 +354,7 @@ local function AutoKillLoop()
                 aimTarget = titan.Model
                 local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
                 if myRoot and titan.Dist <= 15 then
-                    MultiHit(titan.Model); RecordKill()
+                    MultiHit(titan.Model, "Nape"); RecordKill()
                 elseif env.LongRange and titan.Dist <= 80 then
                     LongRangeSlash(titan)
                 else
@@ -363,7 +368,7 @@ local function AutoKillLoop()
                             tw:Play(); tw.Completed:Wait()
                         end)
                         task.wait(0.02)
-                        MultiHit(titan.Model); RecordKill()
+                        MultiHit(titan.Model, "Nape"); RecordKill()
                     end
                 end
             end
@@ -406,36 +411,101 @@ local function AutoKillHumanLoop()
     end)
 end
 
--- ============ KILL AURA ============
+-- ============ KILL AURA (ĐỘC LẬP HOÀN TOÀN) ============
 local killAuraRunning = false
+local killAuraHistory = {}
+
+local function CanKillAuraNow()
+    if not env.AntiKick then return true end
+    local now = tick()
+    local newHistory = {}
+    for _, t in ipairs(killAuraHistory) do
+        if now - t < 60 then table.insert(newHistory, t) end
+    end
+    killAuraHistory = newHistory
+    return #killAuraHistory < (env.MaxKillAuraPerMinute or 160)
+end
+
+local function RecordAuraKill()
+    table.insert(killAuraHistory, tick())
+end
+
+local function GetTargetsInAura()
+    local targets = {}
+    local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not myRoot then return targets end
+    
+    -- Titan
+    local tf = GetTitansFolder()
+    if tf then
+        for _, t in ipairs(tf:GetChildren()) do
+            if t:IsA("Model") then
+                local hum = t:FindFirstChildOfClass("Humanoid")
+                local nape = t:FindFirstChild("Nape") or t:FindFirstChild("NapeHitbox") or t:FindFirstChild("Head")
+                local imm = t:FindFirstChild("TitanImmune")
+                if hum and hum.Health > 0 and nape then
+                    local skip = imm and imm:IsA("BoolValue") and imm.Value
+                    if not skip then
+                        local d = (nape.Position - myRoot.Position).Magnitude
+                        if d <= env.AuraRadius then
+                            table.insert(targets, {Model = t, Part = nape, Type = "Titan", Dist = d, DmgType = "Nape"})
+                        end
+                    end
+                end
+            end
+        end
+    end
+    
+    -- Sniper / Human
+    if env.KillAuraHitHuman then
+        for _, m in ipairs(workspace:GetDescendants()) do
+            if m:IsA("Model") and m ~= LocalPlayer.Character then
+                local hum = m:FindFirstChildOfClass("Humanoid")
+                local root = m:FindFirstChild("HumanoidRootPart") or m.PrimaryPart
+                if hum and hum.Health > 0 and root then
+                    local isTitan = m.Parent and m.Parent.Name == "Titans"
+                    if not isTitan then
+                        local hasMark = m:FindFirstChild("Sniper") 
+                            or m:FindFirstChild("SoldierDamageHitbox") 
+                            or m:FindFirstChildOfClass("Player")
+                        local isPlayer = m.Parent and m.Parent.Name == "Players"
+                        if hasMark or isPlayer or m.Name == "Sniper" then
+                            local d = (root.Position - myRoot.Position).Magnitude
+                            if d <= env.AuraRadius then
+                                table.insert(targets, {Model = m, Part = root, Type = "Human", Dist = d, DmgType = "Body"})
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    
+    table.sort(targets, function(a, b) return a.Dist < b.Dist end)
+    return targets
+end
+
 local function KillAuraLoop()
     if killAuraRunning then return end
     killAuraRunning = true
     task.spawn(function()
         while killAuraRunning do
-            local auraDelay = (env.AutoKillSpeedMode == "Siêu Nhanh") and 0.02 or 0.1
+            local auraDelay
+            if env.AutoKillSpeedMode == "Siêu Nhanh" then auraDelay = 0.02
+            elseif env.AutoKillSpeedMode == "Nhanh" then auraDelay = 0.05
+            elseif env.AutoKillSpeedMode == "Chậm" then auraDelay = 0.15
+            else auraDelay = 0.25 end
+            
             task.wait(auraDelay)
+            
             if not env.KillAura then killAuraRunning = false; break end
-            if not CanKillNow() then task.wait(1); continue end
-            local tf = GetTitansFolder()
-            if tf then
-                local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-                if myRoot then
-                    for _, t in ipairs(tf:GetChildren()) do
-                        if t:IsA("Model") then
-                            local hum = t:FindFirstChildOfClass("Humanoid")
-                            local nape = t:FindFirstChild("Nape") or t:FindFirstChild("NapeHitbox") or t:FindFirstChild("Head")
-                            local imm = t:FindFirstChild("TitanImmune")
-                            if hum and hum.Health > 0 and nape then
-                                local skip = imm and imm:IsA("BoolValue") and imm.Value
-                                if not skip then
-                                    local d = (nape.Position - myRoot.Position).Magnitude
-                                    if d <= env.AuraRadius then MultiHit(t); RecordKill() end
-                                end
-                            end
-                        end
-                    end
-                end
+            if not CanKillAuraNow() then task.wait(1); continue end
+            
+            local targets = GetTargetsInAura()
+            for _, target in ipairs(targets) do
+                if not env.KillAura then break end
+                MultiHit(target.Model, target.DmgType)
+                RecordAuraKill()
             end
         end
     end)
@@ -445,14 +515,19 @@ end
 local lastAK, lastAKH, lastKA, lastAG = false, false, false, false
 RunService.RenderStepped:Connect(function()
     ApplyHacks()
+    
     if env.AutoKill and not lastAK then lastAK = true; AutoKillLoop()
     elseif not env.AutoKill and lastAK then lastAK = false; autoKillRunning = false end
+    
     if env.AutoKillHuman and not lastAKH then lastAKH = true; AutoKillHumanLoop()
     elseif not env.AutoKillHuman and lastAKH then lastAKH = false; autoKillHumanRunning = false end
+    
     if env.KillAura and not lastKA then lastKA = true; KillAuraLoop()
     elseif not env.KillAura and lastKA then lastKA = false; killAuraRunning = false end
+    
     if env.AntiGrab and not lastAG then lastAG = true; AntiGrabLoop()
     elseif not env.AntiGrab and lastAG then lastAG = false; antiGrabRunning = false end
+    
     if env.AutoAim and not env.AutoKill and not env.AutoKillHuman and not env.KillAura then
         local t = GetNearestTitan()
         aimTarget = t and t.Model or nil
@@ -460,32 +535,39 @@ RunService.RenderStepped:Connect(function()
 end)
 
 -- =====================================================
--- ============ FLUENT GUI =============================
+-- ============ FLUENT GUI ============================
 -- =====================================================
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 
--- Lưu reference đến ScreenGui của Fluent
-local FluentScreenGui = nil
-
 local Window = Fluent:CreateWindow({
     Title = "Thành Lợi | AOT",
-    SubTitle = "v11.3 FIXED",
+    SubTitle = "v15",
     TabWidth = 130,
-    Size = UDim2.fromOffset(440, 340),
+    Size = UDim2.fromOffset(460, 360),
     Acrylic = false,
     Theme = "Light",
     MinimizeKey = Enum.KeyCode.End
 })
 
--- FIX: Tìm ScreenGui của Fluent sau khi tạo
+-- ============ FIX: TÌM SCREENGUI CỦA FLUENT ============
+local FluentScreenGui = nil
+
 local function FindFluentScreenGui()
-    local searchIn = {CoreGui, LocalPlayer:WaitForChild("PlayerGui")}
+    local searchIn = {}
+    pcall(function() table.insert(searchIn, CoreGui) end)
+    pcall(function() table.insert(searchIn, LocalPlayer:WaitForChild("PlayerGui", 5)) end)
+    
     for _, parent in ipairs(searchIn) do
-        for _, gui in ipairs(parent:GetChildren()) do
-            if gui:IsA("ScreenGui") then
-                -- Fluent thường đặt tên là "Fluent" hoặc có chứa "Fluent"
-                if gui.Name:lower():find("fluent") then
-                    return gui
+        if parent then
+            for _, gui in ipairs(parent:GetChildren()) do
+                if gui:IsA("ScreenGui") then
+                    local n = gui.Name:lower()
+                    if n:find("fluent") or n:find("window") or n:find("main") then
+                        -- Kiểm tra có phải GUI của Fluent không (có Frame con)
+                        if #gui:GetChildren() > 0 then
+                            return gui
+                        end
+                    end
                 end
             end
         end
@@ -493,22 +575,31 @@ local function FindFluentScreenGui()
     return nil
 end
 
-task.wait(0.5)
+task.wait(0.8)
 FluentScreenGui = FindFluentScreenGui()
+
+-- Nếu không tìm thấy, thử lại nhiều lần
+if not FluentScreenGui then
+    for i = 1, 10 do
+        task.wait(0.3)
+        FluentScreenGui = FindFluentScreenGui()
+        if FluentScreenGui then break end
+    end
+end
 
 -- ============ FIX ĐỔI MÀU ============
 local function ApplyTheme(themeName)
     local t = ColorThemes[themeName] or ColorThemes["Trắng"]
     env.ThemeColor = themeName
     
-    -- Cách 1: Thử SetTheme của Fluent
+    -- Lớp 1: SetTheme của Fluent
     pcall(function()
         Fluent:SetTheme({
             Background = t.Primary,
             BackgroundSecondary = t.Secondary,
             BackgroundTertiary = t.Secondary,
             Text = t.Text,
-            SubText = t.Accent,
+            SubText = t.Sub,
             Element = t.Secondary,
             ElementSecondary = t.Primary,
             ElementTertiary = t.Primary,
@@ -538,27 +629,25 @@ local function ApplyTheme(themeName)
         })
     end)
     
-    -- Cách 2: Force recolor trực tiếp (fallback chắc chắn)
+    -- Lớp 2: Force recolor trực tiếp
     task.spawn(function()
-        task.wait(0.1)
-        if not FluentScreenGui then FluentScreenGui = FindFluentScreenGui() end
+        task.wait(0.15)
+        if not FluentScreenGui or not FluentScreenGui.Parent then
+            FluentScreenGui = FindFluentScreenGui()
+        end
         if not FluentScreenGui then return end
         
         for _, obj in ipairs(FluentScreenGui:GetDescendants()) do
             pcall(function()
-                -- Frames nền tối → đổi sang theme
                 if obj:IsA("Frame") or obj:IsA("TextButton") or obj:IsA("ImageButton") then
                     local bg = obj.BackgroundColor3
-                    -- Nếu là nền tối (dark) thì đổi
                     if bg.R < 0.35 and bg.G < 0.35 and bg.B < 0.35 then
                         obj.BackgroundColor3 = t.Secondary
-                    -- Nếu là nền sáng nhẹ thì đổi sang primary
                     elseif bg.R > 0.85 and bg.G > 0.85 and bg.B > 0.85 then
                         obj.BackgroundColor3 = t.Primary
                     end
                 end
                 
-                -- Text sáng → đổi sang text theme
                 if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
                     local tc = obj.TextColor3
                     if tc.R > 0.7 and tc.G > 0.7 and tc.B > 0.7 then
@@ -566,7 +655,6 @@ local function ApplyTheme(themeName)
                     end
                 end
                 
-                -- UIStroke → accent
                 if obj:IsA("UIStroke") then
                     obj.Color = t.Accent
                 end
@@ -583,11 +671,12 @@ local Tabs = {
 }
 
 -- ============ TAB MAIN ============
-Tabs.Main:AddParagraph({ Title = "🎯 AOT Revolution v11.3", Content = "Auto Kill / Kill Aura / Anti-Grab / Aim" })
+Tabs.Main:AddParagraph({ Title = "🎯 AOT Revolution v15", Content = "Kill Aura độc lập - Không cần AutoKill" })
 
 Tabs.Main:AddToggle("AutoKill", { Title = "Auto Kill Titan", Default = false }):OnChanged(function(v) env.AutoKill = v end)
 Tabs.Main:AddToggle("AutoKillHuman", { Title = "Auto Kill Human/Sniper", Default = false }):OnChanged(function(v) env.AutoKillHuman = v end)
-Tabs.Main:AddToggle("KillAura", { Title = "Kill Aura", Default = false }):OnChanged(function(v) env.KillAura = v end)
+Tabs.Main:AddToggle("KillAura", { Title = "⚡ Kill Aura (Titan + Sniper)", Default = false }):OnChanged(function(v) env.KillAura = v end)
+Tabs.Main:AddToggle("KillAuraHuman", { Title = "Kill Aura Đánh Sniper", Default = true }):OnChanged(function(v) env.KillAuraHitHuman = v end)
 Tabs.Main:AddToggle("AntiGrab", { Title = "Anti-Grab", Default = true }):OnChanged(function(v) env.AntiGrab = v end)
 Tabs.Main:AddToggle("AutoAim", { Title = "Auto Aim", Default = true }):OnChanged(function(v) env.AutoAim = v end)
 Tabs.Main:AddToggle("LongRange", { Title = "Long Range", Default = true }):OnChanged(function(v) env.LongRange = v end)
@@ -622,7 +711,8 @@ Tabs.Misc:AddDropdown("DamageType", { Title = "Loại Sát Thương", Values = {
 
 Tabs.Misc:AddSection("Anti-Kick")
 Tabs.Misc:AddToggle("AntiKick", { Title = "Anti-Kick", Default = true }):OnChanged(function(v) env.AntiKick = v end)
-Tabs.Misc:AddSlider("MaxKillPerMinute", { Title = "Max Kill/Phút", Default = 80, Min = 20, Max = 200, Rounding = 1 }):OnChanged(function(v) env.MaxKillPerMinute = v end)
+Tabs.Misc:AddSlider("MaxKillPerMinute", { Title = "Max AutoKill/Phút", Default = 80, Min = 20, Max = 200, Rounding = 1 }):OnChanged(function(v) env.MaxKillPerMinute = v end)
+Tabs.Misc:AddSlider("MaxKillAura", { Title = "Max Kill Aura/Phút", Default = 160, Min = 20, Max = 500, Rounding = 1 }):OnChanged(function(v) env.MaxKillAuraPerMinute = v end)
 Tabs.Misc:AddToggle("RandomizeDelay", { Title = "Random Delay", Default = true }):OnChanged(function(v) env.RandomizeDelay = v end)
 
 Tabs.Misc:AddSection("Hack")
@@ -649,13 +739,15 @@ Tabs.Color:AddButton({
     Title = "🔄 Reset Tất Cả Cài Đặt",
     Callback = function()
         env.AutoKill = false; env.AutoKillHuman = false; env.KillAura = false
+        env.KillAuraHitHuman = true
         env.AntiGrab = true; env.AutoAim = true; env.LongRange = true
         env.OneHit = true; env.InfGas = true; env.InfBlades = true
         env.BackDistance = 4.0; env.DamageValue = 99999; env.AuraRadius = 300
         env.CameraSmoothness = 0.5; env.HitCount = 3; env.HitSpamDelay = 0.04
         env.AutoKillSpeedMode = "Nhanh"; env.TweenSpeedMode = "Nhanh"
-        env.AntiKick = true; env.MaxKillPerMinute = 80; env.RandomizeDelay = true
-        env.DamageType = "Nape"; ApplyTheme("Trắng")
+        env.AntiKick = true; env.MaxKillPerMinute = 80; env.MaxKillAuraPerMinute = 160
+        env.RandomizeDelay = true; env.DamageType = "Nape"
+        ApplyTheme("Trắng")
         Fluent:Notify({ Title = "Thành Lợi Hub", Content = "Đã reset tất cả!", Duration = 3 })
     end
 })
@@ -663,78 +755,115 @@ Tabs.Color:AddButton({
 Window:SelectTab(1)
 
 -- =====================================================
--- ============ FLOATING BUTTON - FIXED ================
+-- ============ FLOATING BUTTON - FIX TRIỆT ĐỂ ============
 -- =====================================================
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "ThanhLoiHub_AOT"
+ScreenGui.Name = "ThanhLoiHub_AOT_v15"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-ScreenGui.DisplayOrder = 999  -- Luôn trên cùng
-pcall(function() ScreenGui.Parent = CoreGui end)
-if not ScreenGui.Parent then
+ScreenGui.DisplayOrder = 9999
+ScreenGui.IgnoreGuiInset = true
+
+local parented = false
+pcall(function() ScreenGui.Parent = CoreGui; parented = true end)
+if not parented then
     pcall(function() ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end)
 end
 
 local ToggleButton = Instance.new("TextButton")
 ToggleButton.Name = "OpenButton"
-ToggleButton.Size = UDim2.new(0, 50, 0, 50)
+ToggleButton.Size = UDim2.new(0, 52, 0, 52)
 ToggleButton.Position = UDim2.new(0, 20, 0.4, 0)
 ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 ToggleButton.Text = "AOT"
 ToggleButton.TextColor3 = Color3.fromRGB(40, 40, 50)
-ToggleButton.TextSize = 13
+ToggleButton.TextSize = 14
 ToggleButton.Font = Enum.Font.GothamBold
 ToggleButton.Active = true
 ToggleButton.Draggable = true
 ToggleButton.Parent = ScreenGui
 
 local TCorner = Instance.new("UICorner")
-TCorner.CornerRadius = UDim.new(0, 12)
+TCorner.CornerRadius = UDim.new(0, 14)
 TCorner.Parent = ToggleButton
+
 local TStroke = Instance.new("UIStroke")
 TStroke.Color = Color3.fromRGB(180, 180, 200)
 TStroke.Thickness = 2
 TStroke.Parent = ToggleButton
 
--- ============ FIX TOGGLE GUI ============
+-- ============ FIX ẨN MENU - CƠ CHẾ 3 LỚP ============
 local guiVisible = true
 
 local function ToggleFluentGUI()
     guiVisible = not guiVisible
     
-    -- Tìm lại ScreenGui mỗi lần (đề phòng Fluent tạo lại)
+    -- Lớp 1: Tìm lại ScreenGui của Fluent
     if not FluentScreenGui or not FluentScreenGui.Parent then
         FluentScreenGui = FindFluentScreenGui()
     end
     
+    -- Lớp 2: Nếu tìm thấy → toggle Enabled
     if FluentScreenGui then
         FluentScreenGui.Enabled = guiVisible
-        -- Đổi màu nút để biết trạng thái
-        if guiVisible then
-            ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            ToggleButton.TextColor3 = Color3.fromRGB(40, 40, 50)
-            ToggleButton.Text = "AOT"
-        else
-            ToggleButton.BackgroundColor3 = Color3.fromRGB(200, 200, 210)
-            ToggleButton.TextColor3 = Color3.fromRGB(120, 120, 130)
-            ToggleButton.Text = "❌"
-        end
     else
-        -- Fallback: gửi key End
+        -- Lớp 3: Fallback gửi key End
         VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.End, false, game)
+    end
+    
+    -- Đổi visual nút
+    if guiVisible then
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        ToggleButton.TextColor3 = Color3.fromRGB(40, 40, 50)
+        ToggleButton.Text = "AOT"
+        TStroke.Color = Color3.fromRGB(180, 180, 200)
+    else
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(200, 200, 210)
+        ToggleButton.TextColor3 = Color3.fromRGB(120, 120, 130)
+        ToggleButton.Text = "❌"
+        TStroke.Color = Color3.fromRGB(150, 150, 170)
     end
 end
 
 ToggleButton.MouseButton1Click:Connect(ToggleFluentGUI)
 
--- Cũng có thể dùng phím End để toggle
+-- ============ THEO DÕI TRẠNG THÁI FLUENT ============
+-- Nếu user ẩn bằng phím End, cập nhật lại biến guiVisible
 UserInputService.InputBegan:Connect(function(input, processed)
     if processed then return end
     if input.KeyCode == Enum.KeyCode.End then
-        -- Fluent đã xử lý, không cần làm gì
+        task.wait(0.1)
+        if FluentScreenGui then
+            guiVisible = FluentScreenGui.Enabled
+            if guiVisible then
+                ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                ToggleButton.TextColor3 = Color3.fromRGB(40, 40, 50)
+                ToggleButton.Text = "AOT"
+            else
+                ToggleButton.BackgroundColor3 = Color3.fromRGB(200, 200, 210)
+                ToggleButton.TextColor3 = Color3.fromRGB(120, 120, 130)
+                ToggleButton.Text = "❌"
+            end
+        end
     end
 end)
 
-print("✅ Thành Lợi Hub - AOT Revolution v11.3 FIXED")
+-- ============ AUTO-DETECT FLUENT SCREENGUI ============
+-- Nếu FluentScreenGui bị destroy/tạo lại, tự động cập nhật
+task.spawn(function()
+    while task.wait(2) do
+        if not FluentScreenGui or not FluentScreenGui.Parent then
+            local found = FindFluentScreenGui()
+            if found then
+                FluentScreenGui = found
+                -- Đồng bộ trạng thái
+                FluentScreenGui.Enabled = guiVisible
+            end
+        end
+    end
+end)
+
+print("✅ Thành Lợi Hub - AOT Revolution v15")
 print("📌 Nhấn nút AOT để bật/tắt GUI")
+print("📌 Kill Aura hoạt động độc lập, không cần AutoKill")
 print("📌 Nút chuyển thành ❌ khi GUI đang ẩn")
