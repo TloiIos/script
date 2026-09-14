@@ -1,4 +1,4 @@
--- [[ THÀNH LỢI HUB - AOT REVOLUTION v16.3 - FIX ICON & TAB UI ]]
+-- [[ THÀNH LỢI HUB - AOT REVOLUTION v16.4 - FIX FULL TAB & MERGE KILL AURA ]]
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -473,47 +473,60 @@ end)
 -- =====================================================
 -- ============ FLUENT GUI (FULL ICONS & FIX) ==========
 -- =====================================================
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+-- Load Fluent với fallback (tránh lỗi mất tab)
+local Fluent
+local ok, err = pcall(function()
+    Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+end)
+if not ok or not Fluent then
+    pcall(function()
+        Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/main.lua"))()
+    end)
+end
+if not Fluent then
+    Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/main/main.lua"))()
+end
 
 local Window = Fluent:CreateWindow({ 
     Title = "Thành Lợi | AOT Revolution", 
-    SubTitle = "v16.3 Ultimate", 
-    TabWidth = 140, 
-    Size = UDim2.fromOffset(500, 380), 
+    SubTitle = "v16.4 Ultimate", 
+    TabWidth = 160, 
+    Size = UDim2.fromOffset(520, 400), 
     Theme = "Dark", 
     MinimizeKey = Enum.KeyCode.End 
 })
 
+-- Chỉ còn 3 Tab: Farm Chính (gộp Combat), Hacks & Mods, Cài Đặt Anti-Kick
 local Tabs = {
     Main = Window:AddTab({ Title = "Farm Chính", Icon = "sword" }),
-    Combat = Window:AddTab({ Title = "Chiến Đấu & Aura", Icon = "zap" }),
     Hacks = Window:AddTab({ Title = "Hacks & Mods", Icon = "flame" }),
     Settings = Window:AddTab({ Title = "Cài Đặt Anti-Kick", Icon = "settings" })
 }
 
--- Tab 1: Farm Chính
+-- ===== TAB 1: FARM CHÍNH (GỘP CẢ KILL AURA + COMBAT) =====
+Tabs.Main:AddSection("Auto Farm")
 Tabs.Main:AddToggle("AutoKill", { Title = "Auto Kill Titan", Default = false }):OnChanged(function(v) env.AutoKill = v end)
 Tabs.Main:AddToggle("AutoKillHuman", { Title = "Auto Kill Human/Sniper", Default = false }):OnChanged(function(v) env.AutoKillHuman = v end)
 Tabs.Main:AddToggle("LongRange", { Title = "Long Range Teleport Slash", Default = true }):OnChanged(function(v) env.LongRange = v end)
 Tabs.Main:AddToggle("AutoAim", { Title = "Auto Aim Nape/Head", Default = true }):OnChanged(function(v) env.AutoAim = v end)
 
--- Tab 2: Combat & Aura
-Tabs.Combat:AddToggle("KillAura", { Title = "Bật Kill Aura (Titan + Sniper)", Default = false }):OnChanged(function(v) env.KillAura = v end)
-Tabs.Combat:AddToggle("KillAuraHitHuman", { Title = "Kill Aura Đánh Cả Sniper/Human", Default = true }):OnChanged(function(v) env.KillAuraHitHuman = v end)
-Tabs.Combat:AddSlider("AuraRadius", { Title = "Bán Kính Kill Aura", Default = 300, Min = 50, Max = 1000, Increment = 10 }):OnChanged(function(v) env.AuraRadius = v end)
-Tabs.Combat:AddToggle("AntiGrab", { Title = "Anti-Grab (Tự thoát khi bị tóm)", Default = true }):OnChanged(function(v) env.AntiGrab = v end)
+Tabs.Main:AddSection("Kill Aura & Combat")
+Tabs.Main:AddToggle("KillAura", { Title = "Bật Kill Aura (Titan + Sniper)", Default = false }):OnChanged(function(v) env.KillAura = v end)
+Tabs.Main:AddToggle("KillAuraHitHuman", { Title = "Kill Aura Đánh Cả Sniper/Human", Default = true }):OnChanged(function(v) env.KillAuraHitHuman = v end)
+Tabs.Main:AddSlider("AuraRadius", { Title = "Bán Kính Kill Aura", Default = 300, Min = 50, Max = 1000, Increment = 10 }):OnChanged(function(v) env.AuraRadius = v end)
+Tabs.Main:AddToggle("AntiGrab", { Title = "Anti-Grab (Tự thoát khi bị tóm)", Default = true }):OnChanged(function(v) env.AntiGrab = v end)
 
--- Tab 3: Hacks & Mods
+-- ===== TAB 2: HACKS & MODS =====
 Tabs.Hacks:AddToggle("OneHit", { Title = "One Hit K.O", Default = true }):OnChanged(function(v) env.OneHit = v end)
 Tabs.Hacks:AddToggle("InfGas", { Title = "Gas Vô Hạn", Default = true }):OnChanged(function(v) env.InfGas = v end)
 Tabs.Hacks:AddToggle("InfBlades", { Title = "Blade Không Bao Giờ Hỏng", Default = true }):OnChanged(function(v) env.InfBlades = v end)
 Tabs.Hacks:AddDropdown("AutoKillSpeedMode", { Title = "Tốc Độ Farm", Values = {"Siêu Chậm", "Chậm", "Nhanh", "Siêu Nhanh"}, Default = "Nhanh" }):OnChanged(function(v) env.AutoKillSpeedMode = v end)
 Tabs.Hacks:AddDropdown("TweenSpeedMode", { Title = "Tốc Độ Bay (Tween)", Values = {"Rất Chậm", "Chậm", "Bình Thường", "Nhanh", "Rất Nhanh", "Cực Nhanh"}, Default = "Nhanh" }):OnChanged(function(v) env.TweenSpeedMode = v end)
 
--- Tab 4: Cài Đặt Anti-Kick
+-- ===== TAB 3: CÀI ĐẶT ANTI-KICK =====
 Tabs.Settings:AddToggle("AntiKick", { Title = "Bật Chống Kick / Safe Mode", Default = true }):OnChanged(function(v) env.AntiKick = v end)
 Tabs.Settings:AddSlider("MaxKillPerMinute", { Title = "Giới hạn Auto Kill / Phút", Default = 80, Min = 20, Max = 150, Increment = 5 }):OnChanged(function(v) env.MaxKillPerMinute = v end)
 Tabs.Settings:AddSlider("MaxKillAuraPerMinute", { Title = "Giới hạn Kill Aura / Phút", Default = 160, Min = 40, Max = 300, Increment = 10 }):OnChanged(function(v) env.MaxKillAuraPerMinute = v end)
 
 Window:SelectTab(1)
-Fluent:Notify({ Title = "Thành Lợi Hub", Content = "Đã sửa xong lỗi mất chức năng các tab!", Duration = 5 })
+Fluent:Notify({ Title = "Thành Lợi Hub", Content = "Đã gộp Kill Aura vào Tab Farm Chính và fix lỗi mất tab!", Duration = 5 })
