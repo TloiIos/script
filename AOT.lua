@@ -1,4 +1,4 @@
--- [[ THÀNH LỢI HUB - AOT REVOLUTION v16.2 - FIX TAB VISIBILITY ]]
+-- [[ THÀNH LỢI HUB - AOT REVOLUTION v16.3 - FIX ICON & TAB UI ]]
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -471,13 +471,13 @@ RunService.RenderStepped:Connect(function()
 end)
 
 -- =====================================================
--- ============ FLUENT GUI (FIXED TABS & DARK) =========
+-- ============ FLUENT GUI (FULL ICONS & FIX) ==========
 -- =====================================================
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 
 local Window = Fluent:CreateWindow({ 
     Title = "Thành Lợi | AOT Revolution", 
-    SubTitle = "v16.2 Ultimate", 
+    SubTitle = "v16.3 Ultimate", 
     TabWidth = 140, 
     Size = UDim2.fromOffset(500, 380), 
     Theme = "Dark", 
@@ -485,10 +485,10 @@ local Window = Fluent:CreateWindow({
 })
 
 local Tabs = {
-    Main = Window:AddTab({ Title = "Farm Chính", Icon = "" }),
-    Combat = Window:AddTab({ Title = "Chiến Đấu & Aura", Icon = "" }),
-    Hacks = Window:AddTab({ Title = "Hacks & Mods", Icon = "" }),
-    Settings = Window:AddTab({ Title = "Cài Đặt Anti-Kick", Icon = "" })
+    Main = Window:AddTab({ Title = "Farm Chính", Icon = "sword" }),
+    Combat = Window:AddTab({ Title = "Chiến Đấu & Aura", Icon = "zap" }),
+    Hacks = Window:AddTab({ Title = "Hacks & Mods", Icon = "flame" }),
+    Settings = Window:AddTab({ Title = "Cài Đặt Anti-Kick", Icon = "settings" })
 }
 
 -- Tab 1: Farm Chính
@@ -516,4 +516,4 @@ Tabs.Settings:AddSlider("MaxKillPerMinute", { Title = "Giới hạn Auto Kill / 
 Tabs.Settings:AddSlider("MaxKillAuraPerMinute", { Title = "Giới hạn Kill Aura / Phút", Default = 160, Min = 40, Max = 300, Increment = 10 }):OnChanged(function(v) env.MaxKillAuraPerMinute = v end)
 
 Window:SelectTab(1)
-Fluent:Notify({ Title = "Thành Lợi Hub", Content = "Đã fix lỗi hiện tab & full chức năng!", Duration = 5 })
+Fluent:Notify({ Title = "Thành Lợi Hub", Content = "Đã sửa xong lỗi mất chức năng các tab!", Duration = 5 })
