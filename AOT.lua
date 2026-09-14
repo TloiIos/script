@@ -1,19 +1,17 @@
--- [[ THÀNH LỢI HUB - AOT REVOLUTION v16 - MERGED KILL AURA ]]
+-- [[ THÀNH LỢI HUB - AOT REVOLUTION v16 - FULL FUNCTIONS + DARK CYBER THEME ]]
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local VirtualInputManager = game:GetService("VirtualInputManager")
-local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
 
 local env = getgenv and getgenv() or _G
 env.AutoKill = false
 env.AutoKillHuman = false
 env.KillAura = false
-env.KillAuraHitHuman = true   -- Kill Aura đánh cả Sniper/Human
+env.KillAuraHitHuman = true
 env.AntiGrab = true
 env.AutoAim = true
 env.LongRange = true
@@ -36,11 +34,10 @@ env.MaxKillPerMinute = 80
 env.MaxKillAuraPerMinute = 160
 env.RandomizeDelay = true
 env.DamageType = "Nape"
-env.ThemeColor = "Trắng"
 
 local DAMAGE_KEY = "&@&*&@&"
 
--- ============ TWEEN SPEED ============
+-- ============ TWEEN SPEED CONFIG ============
 local TweenSpeedConfig = {
     ["Rất Chậm"]   = 80,
     ["Chậm"]       = 150,
@@ -65,16 +62,6 @@ local function GetTweenTime(dist)
     if t > 0.5 then t = 0.5 end
     return t
 end
-
--- ============ COLOR THEMES ============
-local ColorThemes = {
-    ["Trắng"]      = {Primary = Color3.fromRGB(245,245,250), Secondary = Color3.fromRGB(255,255,255), Text = Color3.fromRGB(25,25,35), Accent = Color3.fromRGB(120,120,180)},
-    ["Xanh Dương"] = {Primary = Color3.fromRGB(30,100,200), Secondary = Color3.fromRGB(45,120,230), Text = Color3.fromRGB(255,255,255), Accent = Color3.fromRGB(100,180,255)},
-    ["Đỏ"]         = {Primary = Color3.fromRGB(200,40,40), Secondary = Color3.fromRGB(230,60,60), Text = Color3.fromRGB(255,255,255), Accent = Color3.fromRGB(255,120,120)},
-    ["Xanh Lá"]    = {Primary = Color3.fromRGB(40,180,80), Secondary = Color3.fromRGB(60,210,100), Text = Color3.fromRGB(255,255,255), Accent = Color3.fromRGB(120,255,150)},
-    ["Tím"]        = {Primary = Color3.fromRGB(130,60,200), Secondary = Color3.fromRGB(150,80,230), Text = Color3.fromRGB(255,255,255), Accent = Color3.fromRGB(200,140,255)},
-    ["Đen"]        = {Primary = Color3.fromRGB(20,20,30), Secondary = Color3.fromRGB(35,35,50), Text = Color3.fromRGB(240,240,250), Accent = Color3.fromRGB(80,80,120)},
-}
 
 -- ============ PATHS ============
 local DamageEvent = ReplicatedStorage:FindFirstChild("DamageEvent")
@@ -130,7 +117,7 @@ local function GetSmartDelay()
     return base
 end
 
--- ============ HACKS ============
+-- ============ HACKS (ONE HIT, GAS, BLADES) ============
 local function ApplyHacks()
     local odm = GetMyOdm()
     if odm then
@@ -162,7 +149,7 @@ local function ApplyHacks()
     end
 end
 
--- ============ DAMAGE ============
+-- ============ DAMAGE ENGINE ============
 local function FireDamageEvent(targetModel, damageType)
     if not DamageEvent or not targetModel or not targetModel.Parent then return false end
     local hum = targetModel:FindFirstChildOfClass("Humanoid")
@@ -189,7 +176,7 @@ local function MultiHit(targetModel, damageType)
     end)
 end
 
--- ============ FIND TITAN & HUMAN ============
+-- ============ TARGET FINDERS ============
 local function GetNearestTitan()
     local tf = GetTitansFolder()
     if not tf then return nil end
@@ -243,23 +230,20 @@ local function GetNearestHuman()
     return nearest
 end
 
--- ============ AIM ============
+-- ============ AUTO AIM ============
 local aimTarget = nil
-local function AimAtPart(part)
-    if not part then return end
+local function UpdateAim()
+    if not env.AutoAim or not aimTarget or not aimTarget.Parent then return end
     pcall(function()
         local camera = workspace.CurrentCamera
         local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
         if not camera or not myRoot then return end
-        local eyePos = myRoot.Position + Vector3.new(0, 1.5, 0)
-        local targetCF = CFrame.new(eyePos, part.Position)
-        camera.CFrame = camera.CFrame:Lerp(targetCF, env.CameraSmoothness)
+        local p = aimTarget:FindFirstChild("Nape") or aimTarget:FindFirstChild("NapeHitbox") or aimTarget:FindFirstChild("HumanoidRootPart") or aimTarget:FindFirstChild("Head")
+        if p then
+            local eyePos = myRoot.Position + Vector3.new(0, 1.5, 0)
+            camera.CFrame = camera.CFrame:Lerp(CFrame.new(eyePos, p.Position), env.CameraSmoothness)
+        end
     end)
-end
-local function UpdateAim()
-    if not env.AutoAim or not aimTarget or not aimTarget.Parent then return end
-    local p = aimTarget:FindFirstChild("Nape") or aimTarget:FindFirstChild("NapeHitbox") or aimTarget:FindFirstChild("HumanoidRootPart") or aimTarget:FindFirstChild("Head")
-    if p then AimAtPart(p) end
 end
 RunService:BindToRenderStep("AOT_Aim_Fix", Enum.RenderPriority.Camera.Value - 1, UpdateAim)
 
@@ -297,7 +281,7 @@ local function AntiGrabLoop()
     end)
 end
 
--- ============ LONG RANGE ============
+-- ============ LONG RANGE TELEPORT ============
 local SavedPosition = nil
 local lastLongRange = 0
 local function SaveCurrentPosition()
@@ -336,7 +320,7 @@ local function LongRangeSlash(titan)
     end)
 end
 
--- ============ AUTO KILL & AUTO KILL HUMAN ============
+-- ============ AUTO KILL LOOPS ============
 local autoKillRunning = false
 local function AutoKillLoop()
     if autoKillRunning then return end
@@ -413,7 +397,7 @@ local function AutoKillHumanLoop()
     end)
 end
 
--- ============ KILL AURA (ĐÃ TÍCH HỢP FFF) ============
+-- ============ KILL AURA (TITAN + SNIPER) ============
 local killAuraRunning = false
 local function KillAuraLoop()
     if killAuraRunning then return end
@@ -422,7 +406,6 @@ local function KillAuraLoop()
         while killAuraRunning do
             local auraDelay = (env.AutoKillSpeedMode == "Siêu Nhanh") and 0.02 or (env.AutoKillSpeedMode == "Nhanh" and 0.05 or 0.15)
             task.wait(auraDelay)
-            
             if not env.KillAura then killAuraRunning = false; break end
             if not CanKillAuraNow() then task.wait(1); continue end
             
@@ -450,7 +433,7 @@ local function KillAuraLoop()
                 end
             end
             
-            -- Đánh Sniper / Human (từ file fff qua)
+            -- Đánh Sniper/Human
             if env.KillAuraHitHuman then
                 for _, m in ipairs(workspace:GetDescendants()) do
                     if m:IsA("Model") and m ~= LocalPlayer.Character then
@@ -473,7 +456,7 @@ local function KillAuraLoop()
     end)
 end
 
--- ============ MAIN LOOP ============
+-- ============ MAIN RUNSERVICE ============
 local lastAK, lastAKH, lastKA, lastAG = false, false, false, false
 RunService.RenderStepped:Connect(function()
     ApplyHacks()
@@ -488,23 +471,48 @@ RunService.RenderStepped:Connect(function()
 end)
 
 -- =====================================================
--- ============ FLUENT GUI (GIỮ NGUYÊN) ===============
+-- ============ FLUENT GUI (DARK THEME) =================
 -- =====================================================
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-local Window = Fluent:CreateWindow({ Title = "Thành Lợi | AOT", SubTitle = "v16", TabWidth = 130, Size = UDim2.fromOffset(440, 340), Theme = "Light", MinimizeKey = Enum.KeyCode.End })
+local Window = Fluent:CreateWindow({ 
+    Title = "Thành Lợi | AOT Revolution", 
+    SubTitle = "v16 Ultimate", 
+    TabWidth = 140, 
+    Size = UDim2.fromOffset(500, 380), 
+    Theme = "Dark", 
+    MinimizeKey = Enum.KeyCode.End 
+})
 
 local Tabs = {
-    Main = Window:AddTab({ Title = "Farm", Icon = "⚔" }),
-    Settings = Window:AddTab({ Title = "Cài Đặt", Icon = "⚙" }),
-    Misc = Window:AddTab({ Title = "Khác", Icon = "🔧" }),
-    Color = Window:AddTab({ Title = "Màu", Icon = "🎨" })
+    Main = Window:AddTab({ Title = "Farm Chính", Icon = "⚔" }),
+    Combat = Window:AddTab({ Title = "Chiến Đấu & Aura", Icon = "⚡" }),
+    Hacks = Window:AddTab({ Title = "Hacks & Mods", Icon = "fire" }),
+    Settings = Window:AddTab({ Title = "Cài Đặt Anti-Kick", Icon = "⚙" })
 }
 
+-- Tab 1: Farm Chính
 Tabs.Main:AddToggle("AutoKill", { Title = "Auto Kill Titan", Default = false }):OnChanged(function(v) env.AutoKill = v end)
 Tabs.Main:AddToggle("AutoKillHuman", { Title = "Auto Kill Human/Sniper", Default = false }):OnChanged(function(v) env.AutoKillHuman = v end)
-Tabs.Main:AddToggle("KillAura", { Title = "⚡ Kill Aura (Titan + Sniper)", Default = false }):OnChanged(function(v) env.KillAura = v end)
-Tabs.Main:AddToggle("KillAuraHuman", { Title = "Kill Aura Đánh Sniper", Default = true }):OnChanged(function(v) env.KillAuraHitHuman = v end)
-Tabs.Main:AddToggle("AntiGrab", { Title = "Anti-Grab", Default = true }):OnChanged(function(v) env.AntiGrab = v end)
+Tabs.Main:AddToggle("LongRange", { Title = "Long Range Teleport Slash", Default = true }):OnChanged(function(v) env.LongRange = v end)
+Tabs.Main:AddToggle("AutoAim", { Title = "Auto Aim Nape/Head", Default = true }):OnChanged(function(v) env.AutoAim = v end)
+
+-- Tab 2: Combat & Aura
+Tabs.Combat:AddToggle("KillAura", { Title = "Bật Kill Aura (Titan + Sniper)", Default = false }):OnChanged(function(v) env.KillAura = v end)
+Tabs.Combat:AddToggle("KillAuraHitHuman", { Title = "Kill Aura Đánh Cả Sniper/Human", Default = true }):OnChanged(function(v) env.KillAuraHitHuman = v end)
+Tabs.Combat:AddSlider("AuraRadius", { Title = "Bán Kính Kill Aura", Default = 300, Min = 50, Max = 1000, Increment = 10 }):OnChanged(function(v) env.AuraRadius = v end)
+Tabs.Combat:AddToggle("AntiGrab", { Title = "Anti-Grab (Tự thoát khi bị tóm)", Default = true }):OnChanged(function(v) env.AntiGrab = v end)
+
+-- Tab 3: Hacks & Mods
+Tabs.Hacks:AddToggle("OneHit", { Title = "One Hit K.O", Default = true }):OnChanged(function(v) env.OneHit = v end)
+Tabs.Hacks:AddToggle("InfGas", { Title = "Gas Vô Hạn", Default = true }):OnChanged(function(v) env.InfGas = v end)
+Tabs.Hacks:AddToggle("InfBlades", { Title = "Blade Không Bao Giờ Hỏng", Default = true }):OnChanged(function(v) env.InfBlades = v end)
+Tabs.Hacks:AddDropdown("AutoKillSpeedMode", { Title = "Tốc Độ Farm", Values = {"Siêu Chậm", "Chậm", "Nhanh", "Siêu Nhanh"}, Default = "Nhanh" }):OnChanged(function(v) env.AutoKillSpeedMode = v end)
+Tabs.Hacks:AddDropdown("TweenSpeedMode", { Title = "Tốc Độ Bay (Tween)", Values = {"Rất Chậm", "Chậm", "Bình Thường", "Nhanh", "Rất Nhanh", "Cực Nhanh"}, Default = "Nhanh" }):OnChanged(function(v) env.TweenSpeedMode = v end)
+
+-- Tab 4: Cài Đặt Anti-Kick
+Tabs.Settings:AddToggle("AntiKick", { Title = "Bật Chống Kick / Safe Mode", Default = true }):OnChanged(function(v) env.AntiKick = v end)
+Tabs.Settings:AddSlider("MaxKillPerMinute", { Title = "Giới hạn Auto Kill / Phút", Default = 80, Min = 20, Max = 150, Increment = 5 }):OnChanged(function(v) env.MaxKillPerMinute = v end)
+Tabs.Settings:AddSlider("MaxKillAuraPerMinute", { Title = "Giới hạn Kill Aura / Phút", Default = 160, Min = 40, Max = 300, Increment = 10 }):OnChanged(function(v) env.MaxKillAuraPerMinute = v end)
 
 Window:SelectTab(1)
-print("✅ Thành Lợi Hub - AOT Revolution v16 (Đã tích hợp Kill Aura fff)")
+Fluent:Notify({ Title = "Thành Lợi Hub", Content = "Đã nạp toàn bộ chức năng + Dark Theme!", Duration = 5 })
